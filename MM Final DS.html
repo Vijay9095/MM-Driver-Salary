@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MMROADWAYS — Driver Salary Management</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<style>
+:root{--primary:#0a2463;--primary2:#1e4db7;--accent:#e84855;--accent2:#ff6b35;--gold:#f4a261;--emerald:#06d6a0;--sky:#48cae4;--bg:#f0f2f8;--surface:#fff;--surface2:#f7f9ff;--border:#dde3f0;--text:#0a1628;--text2:#4a5578;--text3:#8e98b5;--header-h:62px;--sidebar-w:230px;--radius:12px;--radius-sm:8px;--shadow:0 2px 16px rgba(10,36,99,.08);--shadow-md:0 6px 32px rgba(10,36,99,.14)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.topbar{position:fixed;top:0;left:0;right:0;z-index:100;height:var(--header-h);background:var(--primary);display:flex;align-items:center;padding:0 24px;gap:14px;box-shadow:0 2px 20px rgba(10,36,99,.35)}
+.topbar-brand{display:flex;align-items:center;gap:12px}
+.topbar-logo-box{width:38px;height:38px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;font-weight:800;box-shadow:0 2px 8px rgba(232,72,85,.4)}
+.topbar-name{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:#fff;letter-spacing:.5px}
+.topbar-name span{color:var(--gold);font-weight:400;font-size:13px;margin-left:4px;letter-spacing:1px}
+.topbar-divider{width:1px;height:28px;background:rgba(255,255,255,.15);margin:0 4px}
+.topbar-date{font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,255,255,.6);background:rgba(255,255,255,.08);padding:4px 12px;border-radius:20px}
+.topbar-spacer{flex:1}
+.topbar-user{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:rgba(255,255,255,.85)}
+.topbar-user-avatar{width:32px;height:32px;background:linear-gradient(135deg,var(--accent2),var(--accent));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;font-weight:700}
+.topbar-dev{font-size:10.5px;color:rgba(255,255,255,.4);font-family:'JetBrains Mono',monospace;margin-left:8px}
+.sidebar{position:fixed;top:var(--header-h);left:0;bottom:0;width:var(--sidebar-w);background:var(--surface);border-right:1.5px solid var(--border);padding:16px 10px;display:flex;flex-direction:column;gap:2px;overflow-y:auto;z-index:90;box-shadow:2px 0 12px rgba(10,36,99,.05)}
+.sidebar-section{font-size:9.5px;font-weight:700;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;padding:12px 12px 4px;margin-top:4px}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--radius-sm);cursor:pointer;font-size:13px;font-weight:600;color:var(--text2);border:none;background:none;width:100%;text-align:left;transition:all .15s;font-family:'Inter',sans-serif}
+.nav-btn i{font-size:15px;width:18px;text-align:center;opacity:.7}
+.nav-btn:hover{background:rgba(30,77,183,.07);color:var(--primary2)}
+.nav-btn.active{background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;box-shadow:0 4px 12px rgba(10,36,99,.25)}
+.nav-btn.active i{opacity:1}
+.nav-btn.export-btn{color:var(--emerald);border:1.5px solid rgba(6,214,160,.25);background:rgba(6,214,160,.04)}
+.nav-btn.export-btn:hover{background:rgba(6,214,160,.1);border-color:var(--emerald)}
+.nav-btn.import-btn{color:var(--sky);border:1.5px solid rgba(72,202,228,.25);background:rgba(72,202,228,.04)}
+.nav-btn.import-btn:hover{background:rgba(72,202,228,.1);border-color:var(--sky)}
+.main-content{margin-left:var(--sidebar-w);margin-top:var(--header-h);padding:24px;min-height:calc(100vh - var(--header-h))}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:12px}
+.page-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--primary);letter-spacing:-.3px}
+.page-subtitle{font-size:12.5px;color:var(--text2);margin-top:3px}
+.stat-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:22px}
+.stat-card{background:var(--surface);border-radius:var(--radius);border:1.5px solid var(--border);padding:16px 18px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.stat-card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.stat-card.blue::after{background:linear-gradient(90deg,var(--primary),var(--primary2))}
+.stat-card.red::after{background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.stat-card.green::after{background:linear-gradient(90deg,#06d6a0,#07a37a)}
+.stat-card.orange::after{background:linear-gradient(90deg,var(--gold),var(--accent2))}
+.stat-card.sky::after{background:linear-gradient(90deg,var(--sky),#0096c7)}
+.stat-label{font-size:10.5px;font-weight:700;color:var(--text3);letter-spacing:.6px;text-transform:uppercase;margin-bottom:6px}
+.stat-val{font-family:'Syne',sans-serif;font-size:21px;font-weight:800;color:var(--text);letter-spacing:-.5px}
+.card-box{background:var(--surface);border-radius:var(--radius);border:1.5px solid var(--border);box-shadow:var(--shadow);padding:20px;margin-bottom:18px}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--radius-sm);font-size:12.5px;font-weight:700;cursor:pointer;border:none;transition:all .15s;font-family:'Inter',sans-serif;white-space:nowrap}
+.btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;box-shadow:0 3px 10px rgba(10,36,99,.2)}
+.btn-primary:hover{box-shadow:0 5px 16px rgba(10,36,99,.32);transform:translateY(-1px)}
+.btn-emerald{background:linear-gradient(135deg,#06d6a0,#07a37a);color:#fff}
+.btn-emerald:hover{transform:translateY(-1px)}
+.btn-sky{background:linear-gradient(135deg,var(--sky),#0096c7);color:#fff}
+.btn-sky:hover{transform:translateY(-1px)}
+.btn-ghost{background:transparent;color:var(--text2);border:1.5px solid var(--border)}
+.btn-ghost:hover{border-color:var(--primary2);color:var(--primary2);background:rgba(30,77,183,.05)}
+.btn-icon{background:none;border:none;cursor:pointer;padding:5px 7px;border-radius:6px;color:var(--text2);font-size:13px;transition:all .1s}
+.btn-icon:hover{background:rgba(30,77,183,.08);color:var(--primary2)}
+.btn-icon.del:hover{background:rgba(232,72,85,.08);color:var(--accent)}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:13px}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-label{font-size:11px;font-weight:700;color:var(--text2);letter-spacing:.3px;text-transform:uppercase}
+.form-control,.form-select{border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:8px 11px;font-size:12.5px;font-family:'Inter',sans-serif;color:var(--text);background:var(--surface);transition:border .15s;outline:none}
+.form-control:focus,.form-select:focus{border-color:var(--primary2);box-shadow:0 0 0 3px rgba(30,77,183,.1)}
+.form-control[readonly]{background:var(--surface2);color:var(--text2)}
+.table-wrap{overflow-x:auto;border-radius:var(--radius-sm)}
+table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:700px}
+thead th{background:var(--primary);color:#fff;font-size:10.5px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;padding:10px 12px;white-space:nowrap}
+thead th:first-child{border-radius:var(--radius-sm) 0 0 0}
+thead th:last-child{border-radius:0 var(--radius-sm) 0 0}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
+tbody tr:hover{background:rgba(30,77,183,.03)}
+tbody tr:nth-child(even){background:var(--surface2)}
+tbody tr:nth-child(even):hover{background:rgba(30,77,183,.05)}
+tbody td{padding:9px 12px;color:var(--text);vertical-align:middle}
+tbody td.mono{font-family:'JetBrains Mono',monospace;font-size:11.5px}
+.badge{display:inline-block;font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:20px}
+.badge-blue{background:rgba(30,77,183,.1);color:var(--primary2)}
+.badge-red{background:rgba(232,72,85,.1);color:var(--accent)}
+.badge-green{background:rgba(6,214,160,.12);color:#07a37a}
+.badge-gold{background:rgba(244,162,97,.15);color:#c47a2e}
+.badge-sky{background:rgba(72,202,228,.15);color:#0096c7}
+.section{display:none}.section.active{display:block}
+.month-grid{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px}
+.month-chip{padding:6px 15px;border-radius:20px;font-size:12px;font-weight:600;background:var(--surface2);border:1.5px solid var(--border);cursor:pointer;transition:all .15s;color:var(--text2);font-family:'Inter',sans-serif}
+.month-chip:hover{border-color:var(--primary2);color:var(--primary2);background:rgba(30,77,183,.06)}
+.month-chip.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 3px 10px rgba(10,36,99,.2)}
+.modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(10,22,40,.5);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal-box{background:var(--surface);border-radius:var(--radius);padding:26px;width:90%;max-width:800px;box-shadow:0 20px 60px rgba(10,22,40,.25);max-height:92vh;overflow-y:auto}
+.modal-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--primary);margin-bottom:18px;display:flex;align-items:center;gap:9px}
+.modal-footer{display:flex;justify-content:flex-end;gap:9px;margin-top:20px}
+.filter-bar{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.toast{position:fixed;bottom:24px;right:24px;z-index:9999;border-radius:var(--radius-sm);padding:12px 18px;font-size:13px;font-weight:600;box-shadow:0 6px 24px rgba(0,0,0,.18);display:none;align-items:center;gap:10px;font-family:'Inter',sans-serif;animation:slideUp .25s}
+.toast.show{display:flex}
+.toast.success{background:var(--emerald);color:#fff}
+.toast.error{background:var(--accent);color:#fff}
+.toast.info{background:var(--primary2);color:#fff}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.consol-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
+.sum-card{border-radius:10px;padding:14px 16px}
+.sum-card .label{font-size:10px;font-weight:700;color:rgba(255,255,255,.75);text-transform:uppercase;letter-spacing:.6px}
+.sum-card .val{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:#fff;margin-top:3px}
+.sum-card.blue{background:linear-gradient(135deg,var(--primary),var(--primary2))}
+.sum-card.green{background:linear-gradient(135deg,#06d6a0,#07a37a)}
+.sum-card.red{background:linear-gradient(135deg,var(--accent),var(--accent2))}
+.module-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:6px}
+.module-card{background:var(--surface);border-radius:var(--radius);border:1.5px solid var(--border);padding:20px;box-shadow:var(--shadow);cursor:pointer;transition:all .2s;overflow:hidden;position:relative}
+.module-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
+.mc-icon{font-size:26px;margin-bottom:10px}
+.mc-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--primary);margin-bottom:4px}
+.mc-desc{font-size:11.5px;color:var(--text2);line-height:1.5}
+.mc-stripe{position:absolute;top:0;left:0;right:0;height:3px}
+.empty-state{text-align:center;padding:44px 24px;color:var(--text3)}
+.empty-state i{font-size:36px;margin-bottom:10px;display:block;opacity:.5}
+.empty-state p{font-size:13px;font-weight:600}
+.info-banner{background:rgba(72,202,228,.08);border:1.5px solid rgba(72,202,228,.25);border-radius:var(--radius-sm);padding:10px 14px;font-size:12px;color:var(--primary2);margin-bottom:14px;display:flex;align-items:flex-start;gap:8px}
+.info-banner i{margin-top:1px;flex-shrink:0;color:var(--sky)}
+.footer{margin-left:var(--sidebar-w);padding:14px 24px;font-size:11px;color:var(--text3);border-top:1px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:space-between;font-family:'JetBrains Mono',monospace}
+.sheet-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.sheet-tab{padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:var(--surface2);color:var(--text2);transition:all .15s;font-family:'Inter',sans-serif;display:inline-flex;align-items:center;gap:6px}
+.sheet-tab:hover{border-color:var(--primary2);color:var(--primary2)}
+.sheet-tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.col-map-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px;max-height:300px;overflow-y:auto;padding-right:4px}
+.col-map-row{display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--surface2);border-radius:6px;border:1px solid var(--border);font-size:11px}
+.col-map-src{font-weight:600;color:var(--text2);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.col-map-arrow{color:var(--primary2);font-size:11px;flex-shrink:0}
+.col-map-dest{font-weight:700;color:var(--primary);white-space:nowrap}
+.col-map-row.matched{border-color:var(--emerald);background:rgba(6,214,160,.05)}
+.col-map-row.summed{border-color:var(--sky);background:rgba(72,202,228,.06)}
+.col-map-row.summed .col-map-dest{color:#0096c7}
+.col-map-row.skipped{border-color:rgba(142,152,181,.2);background:rgba(142,152,181,.03)}
+.col-map-row.skipped .col-map-dest{color:var(--text3)}
+.import-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:12px 0}
+.import-stat{padding:10px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface2)}
+.import-stat .isl{font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+.import-stat .isv{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--text);margin-top:2px}
+.import-stat.blue .isv{color:var(--primary2)}
+.import-stat.green .isv{color:#07a37a}
+.import-stat.orange .isv{color:var(--accent2)}
+.import-stat.sky .isv{color:#0096c7}
+.import-stat.red .isv{color:var(--accent)}
+.type-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:10px;font-weight:800;letter-spacing:.5px;text-transform:uppercase}
+.type-badge.daily{background:rgba(30,77,183,.1);color:var(--primary2);border:1.5px solid rgba(30,77,183,.2)}
+.type-badge.mileage{background:rgba(244,162,97,.12);color:#c47a2e;border:1.5px solid rgba(244,162,97,.25)}
+.type-badge.consolidated{background:rgba(232,72,85,.1);color:var(--accent);border:1.5px solid rgba(232,72,85,.2)}
+.type-badge.unknown{background:rgba(142,152,181,.12);color:var(--text2);border:1.5px solid rgba(142,152,181,.2)}
+.import-preview-table{width:100%;border-collapse:collapse;font-size:11px;margin-top:10px}
+.import-preview-table th{background:var(--primary);color:#fff;padding:6px 8px;font-size:9.5px;letter-spacing:.5px;text-transform:uppercase;position:sticky;top:0}
+.import-preview-table td{padding:5px 8px;border-bottom:1px solid var(--border);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.import-preview-table tr:nth-child(even) td{background:var(--surface2)}
+.preview-scroll{overflow-x:auto;max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:6px}
+.col-map-info{padding:10px 14px;font-size:11.5px;color:var(--text2);line-height:1.7;background:var(--surface2);border-radius:8px;border:1px solid var(--border);margin-bottom:10px}
+@media(max-width:768px){.sidebar{display:none}.main-content,.footer{margin-left:0}.topbar{padding:0 14px}.consol-summary{grid-template-columns:1fr}.col-map-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-brand"><div class="topbar-logo-box"><i class="fas fa-truck"></i></div><div><div class="topbar-name">MMROADWAYS <span>DRIVER SALARY SYSTEM</span></div></div></div>
+  <div class="topbar-divider"></div><div class="topbar-date" id="topDate"></div>
+  <div class="topbar-spacer"></div><div class="topbar-dev">dev: Vicky</div>
+  <div class="topbar-user"><div class="topbar-user-avatar">R</div>Ragu Anna</div>
+</div>
+
+<div class="sidebar">
+  <div class="sidebar-section">Main</div>
+  <button class="nav-btn active" onclick="showSection('home')" id="nav-home"><i class="fas fa-home"></i> Dashboard</button>
+  <div class="sidebar-section">Modules</div>
+  <button class="nav-btn" onclick="showSection('daily')" id="nav-daily"><i class="fas fa-calendar-day"></i> Daily Salary</button>
+  <button class="nav-btn" onclick="showSection('monthwise')" id="nav-monthwise"><i class="fas fa-calendar-alt"></i> Month Wise View</button>
+  <button class="nav-btn" onclick="showSection('mileage')" id="nav-mileage"><i class="fas fa-route"></i> Mileage</button>
+  <button class="nav-btn" onclick="showSection('consolidated')" id="nav-consolidated"><i class="fas fa-layer-group"></i> Consolidated</button>
+  <div class="sidebar-section">Data</div>
+  <button class="nav-btn export-btn" onclick="exportAllExcel()"><i class="fas fa-file-excel"></i> Export All Excel</button>
+  <button class="nav-btn import-btn" onclick="openImportModal()"><i class="fas fa-file-import"></i> Import Excel</button>
+</div>
+
+<div class="main-content">
+  <div class="section active" id="section-home">
+    <div class="page-header"><div><div class="page-title">Dashboard</div><div class="page-subtitle">MMROADWAYS — Driver Salary Management Portal</div></div><button class="btn btn-primary" onclick="showSection('daily')"><i class="fas fa-plus"></i> Add Entry</button></div>
+    <div class="stat-cards" id="homeStat"></div>
+    <div class="module-cards">
+      <div class="module-card" onclick="showSection('daily')"><div class="mc-stripe" style="background:linear-gradient(90deg,var(--primary),var(--primary2))"></div><div class="mc-icon">📅</div><div class="mc-name">Daily Salary</div><div class="mc-desc">Day-wise driver salary with opening balance, settlement & outstanding tracking.</div></div>
+      <div class="module-card" onclick="showSection('monthwise')"><div class="mc-stripe" style="background:linear-gradient(90deg,var(--emerald),#07a37a)"></div><div class="mc-icon">📆</div><div class="mc-name">Month Wise View</div><div class="mc-desc">Monthly summary per driver.</div></div>
+      <div class="module-card" onclick="showSection('mileage')"><div class="mc-stripe" style="background:linear-gradient(90deg,var(--gold),var(--accent2))"></div><div class="mc-icon">🛣️</div><div class="mc-name">Mileage</div><div class="mc-desc">Trip-wise mileage per truck — Trip 1, 2, 3 & Average.</div></div>
+      <div class="module-card" onclick="showSection('consolidated')"><div class="mc-stripe" style="background:linear-gradient(90deg,var(--accent),var(--accent2))"></div><div class="mc-icon">📊</div><div class="mc-name">Consolidated Salary</div><div class="mc-desc">Full consolidated report across all daily entries.</div></div>
+    </div>
+  </div>
+
+  <div class="section" id="section-daily">
+    <div class="page-header"><div><div class="page-title">Daily Salary</div><div class="page-subtitle">Driver Salary Details</div></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-sky" onclick="openImportModal()"><i class="fas fa-file-import"></i> Import</button><button class="btn btn-primary" onclick="openAddModal()"><i class="fas fa-plus"></i> Add Entry</button><button class="btn btn-emerald" onclick="exportSection('daily')"><i class="fas fa-file-excel"></i> Export</button></div>
+    </div>
+    <div class="card-box" style="padding:14px 18px"><div class="filter-bar">
+      <div class="form-group"><label class="form-label">Entry Date</label><input type="date" class="form-control" id="filterDate" onchange="renderDailyTable()" style="max-width:155px"></div>
+      <div class="form-group"><label class="form-label">Search Driver</label><div style="position:relative"><i class="fas fa-search" style="position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:12px"></i><input type="text" class="form-control" id="searchDriver" placeholder="Name / Truck / DL..." oninput="renderDailyTable()" style="padding-left:30px;min-width:190px"></div></div>
+      <div style="padding-top:18px"><button class="btn btn-ghost" onclick="document.getElementById('filterDate').value='';renderDailyTable()"><i class="fas fa-times"></i> Clear</button></div>
+    </div></div>
+    <div class="card-box" style="padding:0 0 6px"><div class="table-wrap"><table><thead><tr><th>S.No</th><th>Date</th><th>Name</th><th>Contact</th><th>Truck No</th><th>DL No</th><th>Page No</th><th>Opening Bal</th><th>Settlement</th><th>Net Salary</th><th>Paid Salary</th><th>Outstanding</th><th>Remarks</th><th>Action</th></tr></thead><tbody id="dailyBody"></tbody></table></div></div>
+  </div>
+
+  <div class="section" id="section-monthwise">
+    <div class="page-header"><div><div class="page-title">Month Wise View</div><div class="page-subtitle">Monthly salary summary per driver</div></div><button class="btn btn-emerald" onclick="exportSection('monthwise')"><i class="fas fa-file-excel"></i> Export</button></div>
+    <div class="card-box" style="padding:14px 18px"><div class="month-grid" id="monthGrid"></div></div>
+    <div class="card-box" style="padding:0 0 6px"><div style="padding:12px 18px 0;font-size:12.5px;font-weight:700;color:var(--text2)" id="monthViewLabel"></div><div class="table-wrap"><table><thead><tr><th>S.No</th><th>Name</th><th>Contact</th><th>Truck No</th><th>DL No</th><th>Page No</th><th>Net Salary</th><th>Outstanding</th></tr></thead><tbody id="monthBody"></tbody></table></div></div>
+  </div>
+
+  <div class="section" id="section-mileage">
+    <div class="page-header"><div><div class="page-title">Mileage</div><div class="page-subtitle">Trip-wise mileage per truck per month</div></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-sky" onclick="openImportModal()"><i class="fas fa-file-import"></i> Import</button><button class="btn btn-primary" onclick="openMileageAdd()"><i class="fas fa-plus"></i> Add Truck</button><button class="btn btn-emerald" onclick="exportSection('mileage')"><i class="fas fa-file-excel"></i> Export</button></div>
+    </div>
+    <div class="card-box" style="padding:14px 18px"><div class="month-grid" id="mileageMonthGrid"></div></div>
+    <div class="card-box" style="padding:0 0 6px"><div style="padding:12px 18px 0;font-size:12.5px;font-weight:700;color:var(--text2)" id="mileageViewLabel"></div><div class="table-wrap"><table><thead><tr><th>S.No</th><th>Truck No</th><th>Month</th><th>Trip 1</th><th>Trip 2</th><th>Trip 3</th><th>Average</th><th>Action</th></tr></thead><tbody id="mileageBody"></tbody></table></div></div>
+  </div>
+
+  <div class="section" id="section-consolidated">
+    <div class="page-header"><div><div class="page-title">Consolidated Salary</div><div class="page-subtitle">Full consolidated report — all daily entries combined</div></div><button class="btn btn-emerald" onclick="exportSection('consolidated')"><i class="fas fa-file-excel"></i> Export</button></div>
+    <div class="consol-summary" id="consolSummary"></div>
+    <div class="card-box" style="padding:0 0 6px"><div class="table-wrap"><table><thead><tr><th>S.No</th><th>Name</th><th>Contact</th><th>Truck No</th><th>DL No</th><th>Page No</th><th>Total Days</th><th>Opening Bal</th><th>Settlement</th><th>Net Salary</th><th>Paid Salary</th><th>Outstanding</th><th>CLS Salary</th><th>Notes</th></tr></thead><tbody id="consolBody"></tbody></table></div></div>
+  </div>
+</div>
+
+<div class="footer"><span>MMROADWAYS — Driver Salary Management System | Admin: Ragu Anna</span><span>Developed by <strong style="color:var(--primary2)">Vicky</strong> | 2026</span></div>
+
+<!-- ADD MODAL -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal-box">
+    <div class="modal-title"><i class="fas fa-user-plus"></i> <span id="modalTitle">Add Driver Entry</span></div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Entry Date *</label><input type="date" class="form-control" id="f_date"></div>
+      <div class="form-group"><label class="form-label">Page No</label><input type="text" class="form-control" id="f_pageno" placeholder="e.g. 497"></div>
+      <div class="form-group"><label class="form-label">Driver Name *</label><input type="text" class="form-control" id="f_name" placeholder="Full Name"></div>
+      <div class="form-group"><label class="form-label">Contact No</label><input type="text" class="form-control" id="f_contact" placeholder="Mobile Number"></div>
+      <div class="form-group"><label class="form-label">Truck No</label><input type="text" class="form-control" id="f_truck" placeholder="TN 52 XX XXXX"></div>
+      <div class="form-group"><label class="form-label">DL No</label><input type="text" class="form-control" id="f_dl" placeholder="DL Number"></div>
+      <div class="form-group"><label class="form-label">Opening Balance</label><input type="number" class="form-control" id="f_opening" placeholder="0" oninput="autoCalc()"></div>
+      <div class="form-group"><label class="form-label">Settlement</label><input type="number" class="form-control" id="f_settlement" placeholder="0" oninput="autoCalc()"></div>
+      <div class="form-group"><label class="form-label">Net Salary</label><input type="number" class="form-control" id="f_netsalary" placeholder="Auto" readonly></div>
+      <div class="form-group"><label class="form-label">Paid Salary</label><input type="number" class="form-control" id="f_paid" placeholder="0" oninput="autoCalc()"></div>
+      <div class="form-group"><label class="form-label">Outstanding</label><input type="number" class="form-control" id="f_outstanding" placeholder="Auto" readonly></div>
+      <div class="form-group" style="grid-column:1/-1"><label class="form-label">Remarks</label><input type="text" class="form-control" id="f_remarks" placeholder="Notes..."></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('addModal')">Cancel</button><button class="btn btn-primary" onclick="saveEntry()"><i class="fas fa-save"></i> Save Entry</button></div>
+  </div>
+</div>
+
+<!-- MILEAGE MODAL -->
+<div class="modal-overlay" id="mileageModal">
+  <div class="modal-box">
+    <div class="modal-title"><i class="fas fa-route"></i> Add Mileage Entry</div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Month *</label><select class="form-select" id="m_month"></select></div>
+      <div class="form-group"><label class="form-label">Truck No *</label><input type="text" class="form-control" id="m_truck" placeholder="TN 52 XX XXXX"></div>
+      <div class="form-group"><label class="form-label">Trip 1 (km/l)</label><input type="number" class="form-control" id="m_t1" placeholder="0" step="0.01" oninput="calcMileageAvg()"></div>
+      <div class="form-group"><label class="form-label">Trip 2 (km/l)</label><input type="number" class="form-control" id="m_t2" placeholder="0" step="0.01" oninput="calcMileageAvg()"></div>
+      <div class="form-group"><label class="form-label">Trip 3 (km/l)</label><input type="number" class="form-control" id="m_t3" placeholder="0" step="0.01" oninput="calcMileageAvg()"></div>
+      <div class="form-group"><label class="form-label">Average (km/l)</label><input type="number" class="form-control" id="m_avg" placeholder="Auto" readonly step="0.01"></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('mileageModal')">Cancel</button><button class="btn btn-primary" onclick="saveMileage()"><i class="fas fa-save"></i> Save Mileage</button></div>
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div class="modal-overlay" id="importModal">
+  <div class="modal-box" style="max-width:820px">
+    <div class="modal-title"><i class="fas fa-file-import"></i> Import Excel — Smart Auto-Detection</div>
+    <div class="info-banner"><i class="fas fa-magic"></i><div><strong>Auto-detects 3 file types:</strong> Daily Salary (multi-section with dates), Mileage (trip data with merged headers), Consolidated (wide SETTLEMENT/CREDIT columns). Data routes to the correct module automatically.</div></div>
+    <div id="importStep1">
+      <div style="border:2px dashed var(--border);border-radius:var(--radius);padding:32px;text-align:center;cursor:pointer;transition:all .2s" id="dropZone" onclick="document.getElementById('fileInput').click()" ondragover="event.preventDefault();this.style.borderColor='var(--primary2)'" ondragleave="this.style.borderColor='var(--border)'" ondrop="handleDrop(event)">
+        <i class="fas fa-cloud-upload-alt" style="font-size:32px;color:var(--primary2);margin-bottom:10px;display:block"></i>
+        <div style="font-size:14px;font-weight:700;color:var(--text2)">Click to browse or drag & drop</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:4px">Supports .xlsx, .xls — Daily Salary / Mileage / Consolidated</div>
+        <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none" onchange="handleFileSelect(event)">
+      </div>
+    </div>
+    <div id="importStep2" style="display:none">
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px"><i class="fas fa-layer-group" style="color:var(--primary2)"></i> Sheets Detected</div>
+      <div class="sheet-tabs" id="sheetTabs"></div>
+      <div class="import-stats" id="importStats"></div>
+      <div style="font-size:12.5px;font-weight:700;color:var(--text);margin-bottom:4px"><i class="fas fa-columns" style="color:var(--emerald)"></i> Field Mapping</div>
+      <div class="col-map-info" id="mappingInfo"></div>
+      <div class="col-map-grid" id="mappingGrid"></div>
+      <div style="font-size:12.5px;font-weight:700;color:var(--text);margin:12px 0 4px"><i class="fas fa-eye" style="color:var(--sky)"></i> Data Preview (first 5 rows)</div>
+      <div class="preview-scroll"><table class="import-preview-table" id="previewTable"></table></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('importModal');resetImport()"><i class="fas fa-times"></i> Cancel</button>
+      <button class="btn btn-ghost" id="btnBack" style="display:none" onclick="resetImport()"><i class="fas fa-arrow-left"></i> Back</button>
+      <button class="btn btn-sky" id="btnImportAll" style="display:none" onclick="importAllSheets()"><i class="fas fa-layer-group"></i> Import All Sheets</button>
+      <button class="btn btn-primary" id="btnImportSheet" style="display:none" onclick="importCurrentSheet()"><i class="fas fa-check"></i> Import This Sheet</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><i class="fas fa-check-circle"></i> <span id="toastMsg"></span></div>
+
+<script>
+/* ===== DATA LAYER ===== */
+const MONTHS=['Apr-25','May-25','Jun-25','Jul-25','Aug-25','Sep-25','Oct-25','Nov-25','Dec-25','Jan-26','Feb-26','Mar-26','Apr-26'];
+let editId=null,selectedMonth='Mar-26',mileageMonth='Mar-26';
+let importWB=null,importSheets={},activeSheet=null;
+function ld(k){try{return JSON.parse(localStorage.getItem(k))||[]}catch{return[]}}
+function sv(k,d){localStorage.setItem(k,JSON.stringify(d))}
+let entries=ld('mmrw_entries'),mileageData=ld('mmrw_mileage');
+
+document.getElementById('topDate').textContent=new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+
+/* ===== UTILS ===== */
+function fmt(n){return Number(n||0).toLocaleString('en-IN')}
+function parseNum(v){if(v===''||v===null||v===undefined||v==='*')return 0;let s=String(v).trim();if(/^\(.*\)$/.test(s))s='-'+s.replace(/^\(/,'').replace(/\)$/,'');if(s==='- 0'||s==='-0')return 0;s=s.replace(/[₹,\s]/g,'');const n=parseFloat(s);return isNaN(n)?0:n}
+function closeModal(id){document.getElementById(id).classList.remove('show')}
+function showToast(m,t='success'){const e=document.getElementById('toast');e.className='toast show '+t;document.getElementById('toastMsg').textContent=m;setTimeout(()=>e.className='toast',4000)}
+function cleanStr(v){return String(v||'').replace(/\*/g,'').trim()}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
+
+/* ===== NAV ===== */
+function showSection(n){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));document.getElementById('section-'+n).classList.add('active');const nb=document.getElementById('nav-'+n);if(nb)nb.classList.add('active');if(n==='home')renderHome();if(n==='daily')renderDailyTable();if(n==='monthwise'){renderMonthGrid();renderMonthTable()}if(n==='mileage'){renderMileageMonthGrid();renderMileageTable()}if(n==='consolidated')renderConsolidated()}
+
+/* ===== HOME ===== */
+function renderHome(){const net=entries.reduce((s,e)=>s+(parseFloat(e.netsalary)||0),0),paid=entries.reduce((s,e)=>s+(parseFloat(e.paid)||0),0),out=entries.reduce((s,e)=>s+(parseFloat(e.outstanding)||0),0);document.getElementById('homeStat').innerHTML=`<div class="stat-card blue"><div class="stat-label">Total Entries</div><div class="stat-val">${entries.length}</div></div><div class="stat-card red"><div class="stat-label">Net Salary</div><div class="stat-val">${fmt(net)}</div></div><div class="stat-card green"><div class="stat-label">Paid Salary</div><div class="stat-val">${fmt(paid)}</div></div><div class="stat-card orange"><div class="stat-label">Outstanding</div><div class="stat-val">${fmt(out)}</div></div><div class="stat-card sky"><div class="stat-label">Mileage Records</div><div class="stat-val">${mileageData.length}</div></div>`}
+
+/* ===== ADD/EDIT ===== */
+function openAddModal(id=null){editId=id;document.getElementById('modalTitle').textContent=id?'Edit Driver Entry':'Add Driver Entry';const t=new Date().toISOString().split('T')[0];const F=['f_date','f_pageno','f_name','f_contact','f_truck','f_dl','f_opening','f_settlement','f_netsalary','f_paid','f_outstanding','f_remarks'];if(id){const e=entries.find(x=>x.id===id);if(!e)return;F.forEach(k=>document.getElementById(k).value='');document.getElementById('f_date').value=e.date||t;document.getElementById('f_pageno').value=e.pageno||'';document.getElementById('f_name').value=e.name||'';document.getElementById('f_contact').value=e.contact||'';document.getElementById('f_truck').value=e.truck||'';document.getElementById('f_dl').value=e.dl||'';document.getElementById('f_opening').value=e.opening||'';document.getElementById('f_settlement').value=e.settlement||'';document.getElementById('f_netsalary').value=e.netsalary||'';document.getElementById('f_paid').value=e.paid||'';document.getElementById('f_outstanding').value=e.outstanding||'';document.getElementById('f_remarks').value=e.remarks||''}else{F.forEach(k=>document.getElementById(k).value='');document.getElementById('f_date').value=t}document.getElementById('addModal').classList.add('show')}
+function autoCalc(){const o=parseFloat(document.getElementById('f_opening').value)||0,s=parseFloat(document.getElementById('f_settlement').value)||0,p=parseFloat(document.getElementById('f_paid').value)||0;document.getElementById('f_netsalary').value=o+s||'';document.getElementById('f_outstanding').value=(o+s-p)||''}
+function saveEntry(){const nm=document.getElementById('f_name').value.trim(),dt=document.getElementById('f_date').value;if(!nm||!dt){showToast('Name and Date required!','error');return}const e={id:editId||uid(),date:dt,pageno:document.getElementById('f_pageno').value,name:nm,contact:document.getElementById('f_contact').value,truck:document.getElementById('f_truck').value,dl:document.getElementById('f_dl').value,opening:document.getElementById('f_opening').value,settlement:document.getElementById('f_settlement').value,netsalary:document.getElementById('f_netsalary').value,paid:document.getElementById('f_paid').value,outstanding:document.getElementById('f_outstanding').value,remarks:document.getElementById('f_remarks').value};if(editId){const i=entries.findIndex(x=>x.id===editId);entries[i]=e}else entries.push(e);sv('mmrw_entries',entries);closeModal('addModal');renderDailyTable();showToast(editId?'Updated!':'Saved!');editId=null}
+function deleteEntry(id){if(!confirm('Delete this entry?'))return;entries=entries.filter(x=>x.id!==id);sv('mmrw_entries',entries);renderDailyTable();showToast('Deleted.','error')}
+
+/* ===== DAILY TABLE ===== */
+function renderDailyTable(){const fd=document.getElementById('filterDate').value,sr=(document.getElementById('searchDriver').value||'').toLowerCase();let f=entries.filter(e=>{const dm=fd?e.date===fd:true;const sm=!sr||e.name.toLowerCase().includes(sr)||(e.truck||'').toLowerCase().includes(sr)||(e.dl||'').toLowerCase().includes(sr);return dm&&sm}).sort((a,b)=>(b.date||'').localeCompare(a.date||''));const b=document.getElementById('dailyBody');if(!f.length){b.innerHTML='<tr><td colspan="14"><div class="empty-state"><i class="fas fa-inbox"></i><p>No entries found.</p></div></td></tr>';return}b.innerHTML=f.map((e,i)=>`<tr><td><span class="badge badge-blue">${i+1}</span></td><td class="mono">${e.date||'-'}</td><td><strong>${e.name}</strong></td><td class="mono">${e.contact||'-'}</td><td><span class="badge badge-gold">${e.truck||'-'}</span></td><td class="mono" style="font-size:11px">${e.dl||'-'}</td><td>${e.pageno||'-'}</td><td class="mono">${fmt(e.opening)}</td><td class="mono">${fmt(e.settlement)}</td><td class="mono"><strong>${fmt(e.netsalary)}</strong></td><td class="mono"><span class="badge badge-green">${fmt(e.paid)}</span></td><td class="mono"><span class="badge ${parseFloat(e.outstanding)>0?'badge-red':'badge-green'}">${fmt(e.outstanding)}</span></td><td style="font-size:11.5px;color:var(--text2);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.remarks||'-'}</td><td><button class="btn-icon" onclick="openAddModal('${e.id}')"><i class="fas fa-edit"></i></button><button class="btn-icon del" onclick="deleteEntry('${e.id}')"><i class="fas fa-trash"></i></button></td></tr>`).join('')}
+
+/* ===== MONTH WISE ===== */
+function renderMonthGrid(){document.getElementById('monthGrid').innerHTML=MONTHS.map(m=>`<div class="month-chip ${m===selectedMonth?'active':''}" onclick="selectedMonth=m;renderMonthGrid();renderMonthTable()">${m}</div>`).join('')}
+function renderMonthTable(){document.getElementById('monthViewLabel').textContent='Showing: '+selectedMonth;const f=entries.filter(e=>{if(!e.date)return false;const d=new Date(e.date);return d.toLocaleString('en-GB',{month:'short'}).slice(0,3)+'-'+String(d.getFullYear()).slice(-2)===selectedMonth});const b=document.getElementById('monthBody');if(!f.length){b.innerHTML=`<tr><td colspan="8"><div class="empty-state"><i class="fas fa-calendar-times"></i><p>No entries for ${selectedMonth}</p></div></td></tr>`;return}b.innerHTML=f.map((e,i)=>`<tr><td><span class="badge badge-blue">${i+1}</span></td><td><strong>${e.name}</strong></td><td class="mono">${e.contact||'-'}</td><td><span class="badge badge-gold">${e.truck||'-'}</span></td><td class="mono" style="font-size:11px">${e.dl||'-'}</td><td>${e.pageno||'-'}</td><td class="mono"><strong>${fmt(e.netsalary)}</strong></td><td class="mono"><span class="badge ${parseFloat(e.outstanding)>0?'badge-red':'badge-green'}">${fmt(e.outstanding)}</span></td></tr>`).join('')}
+
+/* ===== MILEAGE ===== */
+function renderMileageMonthGrid(){const s=document.getElementById('m_month');s.innerHTML=MONTHS.map(m=>`<option value="${m}" ${m===mileageMonth?'selected':''}>${m}</option>`).join('');document.getElementById('mileageMonthGrid').innerHTML=MONTHS.map(m=>`<div class="month-chip ${m===mileageMonth?'active':''}" onclick="mileageMonth=m;renderMileageMonthGrid();renderMileageTable()">${m}</div>`).join('')}
+function openMileageAdd(){['m_truck','m_t1','m_t2','m_t3','m_avg'].forEach(id=>document.getElementById(id).value='');document.getElementById('m_month').value=mileageMonth;document.getElementById('mileageModal').classList.add('show')}
+function calcMileageAvg(){const a=parseFloat(document.getElementById('m_t1').value)||0,b=parseFloat(document.getElementById('m_t2').value)||0,c=parseFloat(document.getElementById('m_t3').value)||0;const n=[a,b,c].filter(x=>x>0).length;document.getElementById('m_avg').value=n?((a+b+c)/n).toFixed(2):''}
+function saveMileage(){const t=document.getElementById('m_truck').value.trim(),m=document.getElementById('m_month').value;if(!t||!m){showToast('Truck & Month required!','error');return}mileageData.push({id:uid(),month:m,truck:t,t1:document.getElementById('m_t1').value,t2:document.getElementById('m_t2').value,t3:document.getElementById('m_t3').value,avg:document.getElementById('m_avg').value});sv('mmrw_mileage',mileageData);closeModal('mileageModal');renderMileageTable();showToast('Mileage saved!')}
+function deleteMileage(id){if(!confirm('Delete?'))return;mileageData=mileageData.filter(x=>x.id!==id);sv('mmrw_mileage',mileageData);renderMileageTable()}
+function renderMileageTable(){document.getElementById('mileageViewLabel').textContent='Showing: '+mileageMonth;const f=mileageData.filter(m=>m.month===mileageMonth);const b=document.getElementById('mileageBody');if(!f.length){b.innerHTML=`<tr><td colspan="8"><div class="empty-state"><i class="fas fa-road"></i><p>No mileage entries for ${mileageMonth}</p></div></td></tr>`;return}b.innerHTML=f.map((m,i)=>`<tr><td><span class="badge badge-blue">${i+1}</span></td><td><span class="badge badge-gold">${m.truck}</span></td><td>${m.month}</td><td class="mono">${m.t1||'-'} km/l</td><td class="mono">${m.t2||'-'} km/l</td><td class="mono">${m.t3||'-'} km/l</td><td class="mono"><strong>${m.avg||'-'}</strong> km/l</td><td><button class="btn-icon del" onclick="deleteMileage('${m.id}')"><i class="fas fa-trash"></i></button></td></tr>`).join('')}
+
+/* ===== CONSOLIDATED ===== */
+function renderConsolidated(){const g={};entries.forEach(e=>{const k=e.name+'|'+e.truck;if(!g[k])g[k]={...e,days:0,opening:0,settlement:0,netsalary:0,paid:0,outstanding:0};g[k].days++;g[k].opening+=parseFloat(e.opening)||0;g[k].settlement+=parseFloat(e.settlement)||0;g[k].netsalary+=parseFloat(e.netsalary)||0;g[k].paid+=parseFloat(e.paid)||0;g[k].outstanding+=parseFloat(e.outstanding)||0});const rows=Object.values(g);const tN=rows.reduce((s,r)=>s+r.netsalary,0),tP=rows.reduce((s,r)=>s+r.paid,0),tO=rows.reduce((s,r)=>s+r.outstanding,0);document.getElementById('consolSummary').innerHTML=`<div class="sum-card blue"><div class="label">Total Net Salary</div><div class="val">${fmt(tN)}</div></div><div class="sum-card green"><div class="label">Total Paid</div><div class="val">${fmt(tP)}</div></div><div class="sum-card red"><div class="label">Total Outstanding</div><div class="val">${fmt(tO)}</div></div>`;const b=document.getElementById('consolBody');if(!rows.length){b.innerHTML='<tr><td colspan="14"><div class="empty-state"><i class="fas fa-inbox"></i><p>No data.</p></div></td></tr>';return}b.innerHTML=rows.map((r,i)=>`<tr><td><span class="badge badge-blue">${i+1}</span></td><td><strong>${r.name}</strong></td><td class="mono">${r.contact||'-'}</td><td><span class="badge badge-gold">${r.truck||'-'}</span></td><td class="mono" style="font-size:11px">${r.dl||'-'}</td><td>${r.pageno||'-'}</td><td><span class="badge badge-sky">${r.days}</span></td><td class="mono">${fmt(r.opening)}</td><td class="mono">${fmt(r.settlement)}</td><td class="mono"><strong>${fmt(r.netsalary)}</strong></td><td class="mono"><span class="badge badge-green">${fmt(r.paid)}</span></td><td class="mono"><span class="badge ${r.outstanding>0?'badge-red':'badge-green'}">${fmt(r.outstanding)}</span></td><td class="mono"><strong>${fmt(r.netsalary)}</strong></td><td style="font-size:11px;color:var(--text2)">${r.remarks||'-'}</td></tr>`).join('')}
+
+/* ====================================================================
+   SMART IMPORT ENGINE — Handles Daily Salary, Mileage, Consolidated
+   ==================================================================== */
+
+function openImportModal(){resetImport();document.getElementById('importModal').classList.add('show')}
+function resetImport(){document.getElementById('importStep1').style.display='block';document.getElementById('importStep2').style.display='none';document.getElementById('btnBack').style.display='none';document.getElementById('btnImportAll').style.display='none';document.getElementById('btnImportSheet').style.display='none';document.getElementById('fileInput').value='';importWB=null;importSheets={};activeSheet=null}
+function handleDrop(e){e.preventDefault();document.getElementById('dropZone').style.borderColor='var(--border)';const f=e.dataTransfer.files[0];if(f)processFile(f)}
+function handleFileSelect(e){const f=e.target.files[0];if(f)processFile(f)}
+
+function processFile(file){
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      importWB=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+      importSheets={};
+      importWB.SheetNames.forEach(sn=>{
+        const ws=importWB.Sheets[sn];
+        const raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+        if(!raw||raw.length<2)return;
+        const type=detectSheetType(raw);
+        let parsed=[],analysis={};
+        if(type==='daily'){parsed=parseDailySalary(raw);analysis=buildDailyAnalysis(raw,parsed)}
+        else if(type==='mileage'){parsed=parseMileageData(raw);analysis=buildMileageAnalysis(raw,parsed)}
+        else if(type==='consolidated'){parsed=parseConsolidatedData(raw);analysis=buildConsolidatedAnalysis(raw,parsed)}
+        importSheets[sn]={type,parsed,analysis,raw};
+      });
+      const names=Object.keys(importSheets);
+      if(!names.length){showToast('No valid sheets found!','error');return}
+      document.getElementById('sheetTabs').innerHTML=names.map((n,i)=>{
+        const s=importSheets[n];const icon=s.type==='daily'?'fa-calendar-day':s.type==='mileage'?'fa-route':s.type==='consolidated'?'fa-layer-group':'fa-question';
+        return`<div class="sheet-tab ${i===0?'active':''}" onclick="selectSheet('${n.replace(/'/g,"\\'")}')"><i class="fas ${icon}" style="font-size:11px"></i> ${n} <span class="badge badge-blue" style="font-size:9px;padding:1px 6px">${s.parsed.length}</span></div>`
+      }).join('');
+      activeSheet=names[0];showSheetUI(activeSheet);
+      document.getElementById('importStep1').style.display='none';document.getElementById('importStep2').style.display='block';
+      document.getElementById('btnBack').style.display='inline-flex';document.getElementById('btnImportAll').style.display=names.length>1?'inline-flex':'none';document.getElementById('btnImportSheet').style.display='inline-flex';
+    }catch(err){showToast('Error reading file: '+err.message,'error');console.error(err)}
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+/* ===== FILE TYPE DETECTION ===== */
+function detectSheetType(raw){
+  /* Flatten first 10 rows for pattern scanning */
+  const allText=raw.slice(0,10).map(r=>r.map(c=>String(c).trim()).join(' ')).join(' ').toLowerCase();
+
+  /* Mileage: look for "TRIP 1" anywhere in header area */
+  if(/trip\s*1/.test(allText)&&/avg/.test(allText))return'mileage';
+
+  /* Consolidated: multiple SETTLEMENT or CREDIT columns with date suffixes */
+  let settC=0,credC=0;
+  for(let i=0;i<Math.min(raw.length,5);i++)raw[i].forEach(c=>{const s=String(c).trim().toLowerCase();if(/settlement\s+\d/.test(s))settC++;if(/credit\s+\d/.test(s))credC++});
+  if(settC>=3||(settC+credC)>=8)return'consolidated';
+
+  /* Daily: has "driver salary details" header pattern */
+  if(/driver salary details/.test(allText))return'daily';
+
+  /* Fallback heuristics */
+  const firstFew=raw.slice(0,5).flat().map(c=>String(c).trim().toLowerCase());
+  if(firstFew.some(c=>/net salary/.test(c))&&firstFew.some(c=>/paid/.test(c)))return'daily';
+
+  /* Extra mileage check: if we find actual TN truck numbers + numeric data in same rows */
+  let tnRows=0;
+  for(let i=0;i<Math.min(raw.length,15);i++){
+    const rowStr=raw[i].map(c=>String(c).trim()).join(' ');
+    if(/TN\s*\d{2}\s*[A-Z]{1,2}\s*\d{3,4}/i.test(rowStr)&&/\d+\.\d+/.test(rowStr))tnRows++;
+  }
+  if(tnRows>=3)return'mileage';
+
+  return'unknown';
+}
+
+/* ===== DAILY SALARY PARSER — Multi-section with date headers ===== */
+function parseDailySalary(raw){
+  const results=[];let i=0;
+  while(i<raw.length){
+    const rowStr=raw[i].map(c=>String(c).trim()).join(' ');
+    const dm=rowStr.match(/driver salary details\s*[-–—]\s*(\d{1,2})[.\-\/](\d{1,2})[.\-\/](\d{2,4})/i);
+    if(dm){
+      const dateStr=`${dm[3].length===2?'20'+dm[3]:dm[3]}-${dm[2].padStart(2,'0')}-${dm[1].padStart(2,'0')}`;
+      i++;if(i>=raw.length)break;
+      const hdr=raw[i].map(c=>String(c).trim());const cm={};const sc=[];
+      hdr.forEach((h,idx)=>{const hl=h.toLowerCase();
+        if(/^s\s*no$/i.test(hl))cm.sno=idx;
+        else if(/^name$/i.test(hl))cm.name=idx;
+        else if(/contact/i.test(hl))cm.contact=idx;
+        else if(/truck/i.test(hl))cm.truck=idx;
+        else if(/^dl/i.test(hl)||/driving/i.test(hl))cm.dl=idx;
+        else if(/page/i.test(hl))cm.pageno=idx;
+        else if(/opening/i.test(hl)||/note\s*cls/i.test(hl))cm.opening=idx;
+        else if(/online/i.test(hl))cm.onlinecase=idx;
+        else if(/^net salary/i.test(hl))cm.netsalary=idx;
+        else if(/settlement/i.test(hl))sc.push(idx);
+        else if(/paid/i.test(hl))cm.paid=idx;
+        else if(/outstanding/i.test(hl))cm.outstanding=idx;
+        else if(/remarks?/i.test(hl))cm.remarks=idx;
+      });
+      i++;
+      while(i<raw.length){
+        const dr=raw[i];const fv=String(dr[0]||'').trim();
+        if(/^(total|prepared|verified|approved)$/i.test(fv)){i++;break}
+        if(fv===''||fv==='*'){
+          if(dr.map(c=>String(c).trim()).join(' ').match(/driver salary details/i))break;
+          i++;continue}
+        const sno=parseInt(fv);if(isNaN(sno)||sno<=0){i++;continue}
+        const name=cleanStr(dr[cm.name]);if(!name){i++;continue}
+        const opening=cm.opening!=null?parseNum(dr[cm.opening]):0;
+        const settSum=sc.reduce((s,idx)=>s+parseNum(dr[idx]),0);
+        const paid=cm.paid!=null?parseNum(dr[cm.paid]):0;
+        let net=cm.netsalary!=null?parseNum(dr[cm.netsalary]):(opening+settSum);
+        let out=cm.outstanding!=null?parseNum(dr[cm.outstanding]):(net-paid);
+        results.push({id:uid(),date:dateStr,pageno:cleanStr(dr[cm.pageno]),name,contact:cleanStr(dr[cm.contact]),truck:cleanStr(dr[cm.truck]),dl:cleanStr(dr[cm.dl]),opening:opening||'',settlement:settSum||'',netsalary:net||'',paid:paid||'',outstanding:out||'',remarks:cleanStr(dr[cm.remarks])});
+        i++;
+      }
+      continue;
+    }
+    i++;
+  }
+  return results;
+}
+
+/* ===== MILEAGE PARSER — Handles merged two-row headers + data-column detection ===== */
+function parseMileageData(raw){
+  /*
+   * Strategy:
+   * 1. Find the first actual data row by scanning for a TN truck number pattern
+   * 2. In that data row, locate the truck column by regex (not by header text)
+   * 3. Trip values are always the next 4 columns after the truck number
+   * This works regardless of merged headers, extra * columns, etc.
+   */
+  let startIdx=-1;
+  for(let i=0;i<raw.length;i++){
+    const rowStr=raw[i].map(c=>String(c).trim()).join(' ');
+    if(/TN\s*\d{2}\s*[A-Z]{1,2}\s*\d{3,4}/i.test(rowStr)){startIdx=i;break}
+  }
+  if(startIdx<0)return[];
+
+  /* Locate truck column and trip start column from the first data row */
+  const sampleRow=raw[startIdx];
+  let truckIdx=-1,tripStartIdx=-1;
+  for(let i=0;i<sampleRow.length;i++){
+    const val=String(sampleRow[i]).trim();
+    if(/TN\s*\d{2}\s*[A-Z]{1,2}\s*\d{3,4}/i.test(val)){
+      truckIdx=i;
+      tripStartIdx=i+1;
+      break;
+    }
+  }
+  if(truckIdx<0)return[];
+
+  /* Parse all data rows from startIdx onward */
+  const results=[];
+  for(let i=startIdx;i<raw.length;i++){
+    const row=raw[i];
+    if(truckIdx>=row.length)continue;
+    const truck=cleanStr(row[truckIdx]);
+    if(!truck||!/TN\s*\d{2}/i.test(truck))continue;
+
+    const t1=tripStartIdx<row.length?parseNum(row[tripStartIdx]):0;
+    const t2=tripStartIdx+1<row.length?parseNum(row[tripStartIdx+1]):0;
+    const t3=tripStartIdx+2<row.length?parseNum(row[tripStartIdx+2]):0;
+    const avg=tripStartIdx+3<row.length?parseNum(row[tripStartIdx+3]):0;
+
+    /* Skip rows where all trip values and avg are zero */
+    if(t1===0&&t2===0&&t3===0&&avg===0)continue;
+
+    results.push({id:uid(),month:mileageMonth,truck,t1:t1||'',t2:t2||'',t3:t3||'',avg:avg||''});
+  }
+  return results;
+}
+
+/* ===== CONSOLIDATED PARSER — Wide format with many SETTLEMENT/CREDIT columns ===== */
+function parseConsolidatedData(raw){
+  let hIdx=-1;
+  for(let i=0;i<Math.min(raw.length,5);i++){const row=raw[i].map(c=>String(c).trim());if(row.some(c=>/^s\s*no$/i.test(c))&&row.some(c=>/^name$/i.test(c))){hIdx=i;break}}
+  if(hIdx<0)return[];
+  const hdr=raw[hIdx].map(c=>String(c).trim());const cm={};const sc=[],cc=[];
+  hdr.forEach((h,idx)=>{const hl=h.toLowerCase();
+    if(/^s\s*no$/i.test(hl))cm.sno=idx;
+    else if(/^name$/i.test(hl))cm.name=idx;
+    else if(/contact/i.test(hl))cm.contact=idx;
+    else if(/truck/i.test(hl))cm.truck=idx;
+    else if(/^dl/i.test(hl))cm.dl=idx;
+    else if(/page/i.test(hl))cm.pageno=idx;
+    else if(/note\s*cls/i.test(hl)||/cls\s*salary/i.test(hl))cm.opening=idx;
+    else if(/online/i.test(hl))cm.onlinecase=idx;
+    else if(/^net salary/i.test(hl))cm.netsalary=idx;
+    else if(/settlement/i.test(hl))sc.push(idx);
+    else if(/credit/i.test(hl))cc.push(idx);
+    else if(/paid/i.test(hl))cm.paid=idx;
+    else if(/outstanding/i.test(hl))cm.outstanding=idx;
+  });
+  const results=[];
+  for(let i=hIdx+1;i<raw.length;i++){
+    const row=raw[i];const fv=String(row[0]||'').trim();
+    if(/^(total|prepared|verified|approved)$/i.test(fv))continue;
+    const name=cleanStr(row[cm.name]);if(!name)continue;
+    const nonStar=row.filter(c=>{const s=String(c).trim();return s!==''&&s!=='*'}).length;if(nonStar<3)continue;
+    const opening=cm.opening!=null?parseNum(row[cm.opening]):0;
+    const online=cm.onlinecase!=null?parseNum(row[cm.onlinecase]):0;
+    const settSum=sc.reduce((s,idx)=>s+parseNum(row[idx]),0);
+    const paid=cc.reduce((s,idx)=>s+parseNum(row[idx]),0)+online;
+    let net=cm.netsalary!=null?parseNum(row[cm.netsalary]):(opening+settSum);
+    let out=cm.outstanding!=null?parseNum(row[cm.outstanding]):(net-paid);
+    results.push({id:uid(),date:'',pageno:cleanStr(row[cm.pageno]),name,contact:cleanStr(row[cm.contact]),truck:cleanStr(row[cm.truck]),dl:cleanStr(row[cm.dl]),opening:opening||'',settlement:settSum||'',netsalary:net||'',paid:paid||'',outstanding:out||'',remarks:''});
+  }
+  return results;
+}
+
+/* ===== ANALYSIS BUILDERS (for UI display) ===== */
+function buildDailyAnalysis(raw,parsed){
+  const dates=[];raw.forEach(r=>{const m=r.map(c=>String(c).trim()).join(' ').match(/driver salary details\s*[-–—]\s*(\d{1,2}[.\-\/]\d{1,2}[.\-\/]\d{2,4})/i);if(m&&!dates.includes(m[1]))dates.push(m[1])});
+  return{type:'daily',sections:dates.length,rows:parsed.length,details:`Found ${dates.length} date-sections with ${parsed.length} total driver entries. Each section is parsed separately with its own date and column layout.`}
+}
+function buildMileageAnalysis(raw,parsed){return{type:'mileage',rows:parsed.length,details:`Found ${parsed.length} truck mileage records by detecting TN truck numbers in data rows (handles merged headers automatically). Month defaults to currently selected: ${mileageMonth}. You can change it after import.`}}
+function buildConsolidatedAnalysis(raw,parsed){
+  let sc=0,cc=0;const hdr=raw.slice(0,5).flat();
+  hdr.forEach(c=>{const s=String(c).trim().toLowerCase();if(/settlement\s+\d/.test(s))sc++;if(/credit\s+\d/.test(s))cc++});
+  return{type:'consolidated',rows:parsed.length,settCols:sc,credCols:cc,details:`Found ${parsed.length} driver records across ${sc} SETTLEMENT columns (summed) and ${cc} CREDIT columns (summed as Paid). NOTE CLS SALARY mapped to Opening, ONLINE CASE added to Paid.`}
+}
+
+/* ===== SHOW SHEET UI ===== */
+function selectSheet(name){activeSheet=name;document.querySelectorAll('.sheet-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.sheet-tab').forEach(t=>{if(t.textContent.includes(name))t.classList.add('active')});showSheetUI(name)}
+
+function showSheetUI(name){
+  const sh=importSheets[name];if(!sh)return;const{type,parsed,analysis,raw}=sh;
+  const typeLabel=type==='daily'?'Daily Salary':type==='mileage'?'Mileage':type==='consolidated'?'Consolidated':'Unknown';
+  const typeClass=type==='daily'?'daily':type==='mileage'?'mileage':type==='consolidated'?'consolidated':'unknown';
+
+  let statsHTML=`<div class="import-stat"><div class="isl">Detected Type</div><div class="isv" style="font-size:13px"><span class="type-badge ${typeClass}"><i class="fas ${type==='daily'?'fa-calendar-day':type==='mileage'?'fa-route':'fa-layer-group'}"></i> ${typeLabel}</span></div></div>`;
+  statsHTML+=`<div class="import-stat blue"><div class="isl">Records Found</div><div class="isv">${parsed.length}</div></div>`;
+  if(type==='daily'){statsHTML+=`<div class="import-stat green"><div class="isl">Date Sections</div><div class="isv">${analysis.sections}</div></div>`;statsHTML+=`<div class="import-stat sky"><div class="isl">Target Module</div><div class="isv" style="font-size:12px">Daily Salary</div></div>`}
+  if(type==='mileage'){statsHTML+=`<div class="import-stat orange"><div class="isl">Target Month</div><div class="isv" style="font-size:12px">${mileageMonth}</div></div>`;statsHTML+=`<div class="import-stat sky"><div class="isl">Target Module</div><div class="isv" style="font-size:12px">Mileage</div></div>`}
+  if(type==='consolidated'){statsHTML+=`<div class="import-stat orange"><div class="isl">SETTLEMENT Cols</div><div class="isv">${analysis.settCols} <span style="font-size:9px;font-weight:400;color:var(--text3)">summed</span></div></div>`;statsHTML+=`<div class="import-stat red"><div class="isl">CREDIT Cols</div><div class="isv">${analysis.credCols} <span style="font-size:9px;font-weight:400;color:var(--text3)">to Paid</span></div></div>`;statsHTML+=`<div class="import-stat sky"><div class="isl">Target Module</div><div class="isv" style="font-size:12px">Daily Salary</div></div>`}
+  document.getElementById('importStats').innerHTML=statsHTML;
+
+  document.getElementById('mappingInfo').innerHTML=`<i class="fas fa-info-circle" style="color:var(--sky);margin-right:4px"></i> ${analysis.details}`;
+
+  /* Column mapping grid */
+  let mapHTML='';
+  if(type==='daily'){
+    [['S.NO','sno'],['NAME','Driver Name'],['CONTACT NO','Contact'],['TRUCK NO','Truck'],['DL NO','DL'],['PAGE NO','Page No'],['OPENING BALANCE','Opening Bal'],['SETTLEMENT dd.mm.yy','Settlement (sum)'],['NET SALARY','Net Salary'],['PAID SALARY','Paid Salary'],['OUTSTANDING SALARY','Outstanding'],['REMARKS','Remarks']].forEach(([src,dest])=>{
+      const cls=dest.includes('sum')?'summed':'matched';
+      mapHTML+=`<div class="col-map-row ${cls}"><span class="col-map-src">${src}</span><span class="col-map-arrow">→</span><span class="col-map-dest">${dest}</span></div>`;
+    });
+  }else if(type==='mileage'){
+    [['TN XX XXXX (detected)','Truck No'],['Next col +1','Trip 1 km/l'],['Next col +2','Trip 2 km/l'],['Next col +3','Trip 3 km/l'],['Next col +4','Average km/l']].forEach(([src,dest])=>{
+      mapHTML+=`<div class="col-map-row matched"><span class="col-map-src">${src}</span><span class="col-map-arrow">→</span><span class="col-map-dest">${dest}</span></div>`;
+    });
+    mapHTML+=`<div class="col-map-row skipped"><span class="col-map-src">*, -, blank values</span><span class="col-map-arrow">→</span><span class="col-map-dest">Treated as 0</span></div>`;
+    mapHTML+=`<div class="col-map-row skipped"><span class="col-map-src">(auto-assigned)</span><span class="col-map-arrow">→</span><span class="col-map-dest">Month: ${mileageMonth}</span></div>`;
+  }else if(type==='consolidated'){
+    [['S.NO','sno'],['NAME','Driver Name'],['CONTACT NO','Contact'],['TRUCK NO','Truck'],['DL NO','DL'],['PAGE NO','Page No'],['NOTE CLS SALARY','Opening Bal'],['ONLINE CASE MH/TN','added to Paid'],['SETTLEMENT dd.mm.yy','Settlement (sum)'],['CREDIT dd.mm.yy','Credit (sum to Paid)'],['NET SALARY OUTSTANDING','Outstanding']].forEach(([src,dest])=>{
+      let cls='matched';if(dest.includes('sum')||dest.includes('Credit')||dest.includes('added'))cls='summed';
+      mapHTML+=`<div class="col-map-row ${cls}"><span class="col-map-src">${src}</span><span class="col-map-arrow">→</span><span class="col-map-dest">${dest}</span></div>`;
+    });
+  }else{
+    mapHTML=`<div class="col-map-row skipped"><span class="col-map-src">Could not detect</span><span class="col-map-arrow">→</span><span class="col-map-dest">Unknown format</span></div>`;
+  }
+  document.getElementById('mappingGrid').innerHTML=mapHTML;
+
+  /* Preview table */
+  const prev=parsed.slice(0,5);
+  if(type==='daily'||type==='consolidated'){
+    let pt=`<thead><tr><th>Name</th><th>Contact</th><th>Truck</th><th>DL</th><th>Opening</th><th>Settlement</th><th>Net Salary</th><th>Paid</th><th>Outstanding</th>${type==='daily'?'<th>Date</th>':''}<th>Remarks</th></tr></thead><tbody>`;
+    prev.forEach(r=>{pt+=`<tr><td><strong>${r.name}</strong></td><td>${r.contact||'-'}</td><td>${r.truck||'-'}</td><td style="font-size:10px">${r.dl||'-'}</td><td>${fmt(r.opening)}</td><td style="color:var(--primary2);font-weight:600">${fmt(r.settlement)}</td><td><strong>${fmt(r.netsalary)}</strong></td><td style="color:#07a37a;font-weight:600">${fmt(r.paid)}</td><td style="color:${parseFloat(r.outstanding)>0?'var(--accent)':'#07a37a'};font-weight:700">${fmt(r.outstanding)}</td>${type==='daily'?`<td class="mono" style="font-size:10px">${r.date||'-'}</td>`:''}<td style="font-size:10px">${r.remarks||'-'}</td></tr>`});
+    pt+='</tbody>';document.getElementById('previewTable').innerHTML=pt;
+  }else if(type==='mileage'){
+    let pt=`<thead><tr><th>Truck No</th><th>Month</th><th>Trip 1</th><th>Trip 2</th><th>Trip 3</th><th>Average</th></tr></thead><tbody>`;
+    prev.forEach(r=>{pt+=`<tr><td><strong>${r.truck}</strong></td><td>${r.month}</td><td>${r.t1||'-'}</td><td>${r.t2||'-'}</td><td>${r.t3||'-'}</td><td><strong>${r.avg||'-'}</strong></td></tr>`});
+    pt+='</tbody>';document.getElementById('previewTable').innerHTML=pt;
+  }else{
+    document.getElementById('previewTable').innerHTML='<tbody><tr><td style="padding:20px;text-align:center;color:var(--text3)">No preview available</td></tr></tbody>';
+  }
+}
+
+/* ===== IMPORT EXECUTION ===== */
+function importCurrentSheet(){
+  if(!activeSheet)return;
+  const sh=importSheets[activeSheet];if(!sh||!sh.parsed.length){showToast('No valid rows to import!','error');return}
+  if(sh.type==='mileage'){
+    mileageData=mileageData.concat(sh.parsed);sv('mmrw_mileage',mileageData);
+    showToast(`${sh.parsed.length} mileage records imported from "${activeSheet}"!`);
+  }else{
+    entries=entries.concat(sh.parsed);sv('mmrw_entries',entries);
+    showToast(`${sh.parsed.length} salary records imported from "${activeSheet}"!`);
+  }
+  closeModal('importModal');resetImport();renderAll();
+}
+
+function importAllSheets(){
+  let dailyC=0,mileC=0;
+  Object.keys(importSheets).forEach(sn=>{
+    const sh=importSheets[sn];if(!sh.parsed.length)return;
+    if(sh.type==='mileage'){mileageData=mileageData.concat(sh.parsed);mileC+=sh.parsed.length}
+    else{entries=entries.concat(sh.parsed);dailyC+=sh.parsed.length}
+  });
+  sv('mmrw_entries',entries);sv('mmrw_mileage',mileageData);
+  closeModal('importModal');resetImport();renderAll();
+  let msg='';if(dailyC)msg+=`${dailyC} salary records`;if(dailyC&&mileC)msg+=' + ';if(mileC)msg+=`${mileC} mileage records`;
+  showToast(msg?`${msg} imported!`:'No valid rows found!','success');
+}
+
+function renderAll(){renderHome();renderDailyTable();renderMonthGrid();renderMonthTable();renderMileageMonthGrid();renderMileageTable();renderConsolidated()}
+
+/* ====================================================================
+   COLORFUL EXCEL EXPORT — Using ExcelJS for full styling
+   ==================================================================== */
+async function exportSection(type){
+  const wb=new ExcelJS.Workbook();wb.creator='MMROADWAYS - Vicky';wb.created=new Date();
+  if(type==='daily'||type==='all'){
+    addColorSheet(wb,'Daily Salary',
+      ['S.No','Date','Name','Contact No','Truck No','DL No','Page No','Opening Bal','Settlement','Net Salary','Paid Salary','Outstanding','Remarks'],
+      entries.map((e,i)=>[i+1,e.date||'',e.name,e.contact||'',e.truck||'',e.dl||'',e.pageno||'',+(parseFloat(e.opening)||0),+(parseFloat(e.settlement)||0),+(parseFloat(e.netsalary)||0),+(parseFloat(e.paid)||0),+(parseFloat(e.outstanding)||0),e.remarks||'']),
+      {nameCol:2,truckCol:4,outCol:11,netCol:9,paidCol:10});
+  }
+  if(type==='monthwise'||type==='all'){
+    const f=entries.filter(e=>{if(!e.date)return false;const d=new Date(e.date);return d.toLocaleString('en-GB',{month:'short'}).slice(0,3)+'-'+String(d.getFullYear()).slice(-2)===selectedMonth});
+    addColorSheet(wb,'Month '+selectedMonth,
+      ['S.No','Name','Contact No','Truck No','DL No','Page No','Net Salary','Outstanding'],
+      f.map((e,i)=>[i+1,e.name,e.contact||'',e.truck||'',e.dl||'',e.pageno||'',+(parseFloat(e.netsalary)||0),+(parseFloat(e.outstanding)||0)]),
+      {nameCol:1,truckCol:3,outCol:7,netCol:6});
+  }
+  if(type==='mileage'||type==='all'){
+    const f=mileageData.filter(m=>m.month===mileageMonth);
+    addColorSheet(wb,'Mileage '+mileageMonth,
+      ['S.No','Truck No','Month','Trip 1 (km/l)','Trip 2 (km/l)','Trip 3 (km/l)','Average (km/l)'],
+      f.map((m,i)=>[i+1,m.truck,m.month,+(parseFloat(m.t1)||0),+(parseFloat(m.t2)||0),+(parseFloat(m.t3)||0),+(parseFloat(m.avg)||0)]),
+      {truckCol:1});
+  }
+  if(type==='consolidated'||type==='all'){
+    const g={};entries.forEach(e=>{const k=e.name+'|'+e.truck;if(!g[k])g[k]={...e,days:0,opening:0,settlement:0,netsalary:0,paid:0,outstanding:0};g[k].days++;g[k].opening+=parseFloat(e.opening)||0;g[k].settlement+=parseFloat(e.settlement)||0;g[k].netsalary+=parseFloat(e.netsalary)||0;g[k].paid+=parseFloat(e.paid)||0;g[k].outstanding+=parseFloat(e.outstanding)||0});
+    const rows=Object.values(g);
+    addColorSheet(wb,'Consolidated Salary',
+      ['S.No','Name','Contact No','Truck No','DL No','Page No','Days','Opening Bal','Settlement','Net Salary','Paid Salary','Outstanding','CLS Salary','Notes'],
+      rows.map((r,i)=>[i+1,r.name,r.contact||'',r.truck||'',r.dl||'',r.pageno||'',r.days,+r.opening.toFixed(2),+r.settlement.toFixed(2),+r.netsalary.toFixed(2),+r.paid.toFixed(2),+r.outstanding.toFixed(2),+r.netsalary.toFixed(2),r.remarks||'']),
+      {nameCol:1,truckCol:3,outCol:11,netCol:9,paidCol:10,daysCol:6,hasTotal:true,totalRow:rows});
+  }
+  const buf=await wb.xlsx.writeBuffer();
+  const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`MMROADWAYS_DriverSalary_${new Date().toLocaleDateString('en-IN').replace(/\//g,'-')}.xlsx`;
+  a.click();URL.revokeObjectURL(a.href);showToast('Colorful Excel exported!');
+}
+function exportAllExcel(){exportSection('all')}
+
+function addColorSheet(wb,sheetName,headers,rows,opts={}){
+  const ws=wb.addWorksheet(sheetName);
+  const nc=opts.nameCol||-1,truckCol=opts.truckCol||-1,outCol=opts.outCol||-1,netCol=opts.netCol||-1,paidCol=opts.paidCol||-1,daysCol=opts.daysCol||-1;
+  ws.mergeCells(1,1,1,headers.length);
+  const tCell=ws.getCell(1,1);tCell.value='MMROADWAYS — '+sheetName;
+  tCell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0a2463'}};
+  tCell.font={name:'Calibri',size:14,bold:true,color:{argb:'FFFFFFFF'}};
+  tCell.alignment={horizontal:'center',vertical:'middle'};ws.getRow(1).height=34;
+  for(let c=2;c<=headers.length;c++){ws.getCell(1,c).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0a2463'}}}
+  ws.mergeCells(2,1,2,headers.length);
+  const sCell=ws.getCell(2,1);sCell.value='Admin: Ragu Anna  |  Developed by Vicky  |  '+new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'});
+  sCell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF1e4db7'}};
+  sCell.font={name:'Calibri',size:10,color:{argb:'FFC8D6F0'}};sCell.alignment={horizontal:'center',vertical:'middle'};ws.getRow(2).height=22;
+  for(let c=2;c<=headers.length;c++){ws.getCell(2,c).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF1e4db7'}}}
+  const hRow=ws.addRow(headers);hRow.height=26;
+  hRow.eachCell(cell=>{cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0a2463'}};cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FFFFFFFF'}};cell.alignment={horizontal:'center',vertical:'middle',wrapText:true};cell.border={top:{style:'thin',color:{argb:'FF3355AA'}},bottom:{style:'medium',color:{argb:'FF0a2463'}},left:{style:'thin',color:{argb:'FF3355AA'}},right:{style:'thin',color:{argb:'FF3355AA'}}}});
+  rows.forEach((row,ri)=>{
+    const dr=ws.addRow(row);dr.height=21;const even=ri%2===0;
+    dr.eachCell((cell,colNum)=>{
+      const ci=colNum-1;let bg=even?'FFF0F4FF':'FFFFFFFF';
+      if(ci===nc)bg='FFFFF8EE';if(ci===truckCol)bg=even?'FFFFF0E0':'FFFFF5EA';
+      if(ci===netCol)bg=even?'FFE8EEFF':'FFF4F8FF';if(ci===paidCol)bg=even?'FFE8FFF5':'FFF2FFF9';
+      if(ci===outCol){bg=(parseFloat(row[ci])||0)>0?'FFFFE8E8':'FFE8FFF5'}
+      if(ci===daysCol)bg=even?'FFE8F8FF':'FFF2FCFF';
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:bg}};
+      let fontColor='FF0a1628',bold=false;
+      if(ci===nc){bold=true;fontColor='FF0a2463'}
+      if(ci===outCol){bold=true;fontColor=(parseFloat(row[ci])||0)>0?'FFD42020':'FF078A52'}
+      if(ci===netCol)bold=true;if(ci===truckCol){fontColor='FFB85C00';bold=true}
+      cell.font={name:'Calibri',size:10,bold,color:{argb:fontColor}};cell.alignment={vertical:'middle'};
+      cell.border={top:{style:'hair',color:{argb:'FFDDE3F0'}},bottom:{style:'hair',color:{argb:'FFDDE3F0'}},left:{style:'hair',color:{argb:'FFDDE3F0'}},right:{style:'hair',color:{argb:'FFDDE3F0'}}};
+    });
+  });
+  if(opts.hasTotal&&opts.totalRow){
+    const tr=opts.totalRow;const tNet=tr.reduce((s,r)=>s+r.netsalary,0),tPaid=tr.reduce((s,r)=>s+r.paid,0),tOut=tr.reduce((s,r)=>s+r.outstanding,0);
+    const td=new Array(headers.length).fill('');td[0]='TOTAL';td[netCol]=+tNet.toFixed(2);td[paidCol]=+tPaid.toFixed(2);td[outCol]=+tOut.toFixed(2);
+    const tRow=ws.addRow(td);tRow.height=28;
+    tRow.eachCell((cell,ci)=>{
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0a2463'}};let fColor='FFFFFFFF';let bold=true;
+      if(ci===outCol+1)fColor=tOut>0?'FFFF6B6B':'FF6BFFB0';if(ci===paidCol+1)fColor='FF6BFFB0';if(ci===netCol+1)fColor='FF48CAE4';
+      cell.font={name:'Calibri',size:11,bold,color:{argb:fColor}};cell.alignment={horizontal:'center',vertical:'middle'};
+      cell.border={top:{style:'medium',color:{argb:'FF0a2463'}},bottom:{style:'medium',color:{argb:'FF0a2463'}},left:{style:'thin',color:{argb:'FF1e4db7'}},right:{style:'thin',color:{argb:'FF1e4db7'}}};
+    });
+  }
+  ws.columns=headers.map((h,i)=>{if(i===nc)return{width:22};if(i===truckCol)return{width:18};if(i===outCol)return{width:16};return{width:Math.max(String(h).length+3,13)}});
+  ws.views=[{state:'frozen',ySplit:3,xSplit:0,topLeftCell:'A4'}];
+}
+
+/* ===== INIT ===== */
+renderAll();
+</script>
+</body>
+</html>
