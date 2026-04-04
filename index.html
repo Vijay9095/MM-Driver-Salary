@@ -67,6 +67,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .form-control,.form-select{border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:8px 11px;font-size:12.5px;font-family:'Inter',sans-serif;color:var(--text);background:var(--surface);transition:border .15s;outline:none}
 .form-control:focus,.form-select:focus{border-color:var(--primary2);box-shadow:0 0 0 3px rgba(30,77,183,.1)}
 .form-control[readonly]{background:var(--surface2);color:var(--text2)}
+.form-control.autofilled{background:rgba(6,214,160,.06);border-color:var(--emerald)!important;color:#07a37a;font-weight:700}
 .table-wrap{overflow-x:auto;border-radius:var(--radius-sm)}
 table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:700px}
 thead th{background:var(--primary);color:#fff;font-size:10.5px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;padding:10px 12px;white-space:nowrap}
@@ -155,6 +156,32 @@ tbody td.mono{font-family:'JetBrains Mono',monospace;font-size:11.5px}
 .import-preview-table tr:nth-child(even) td{background:var(--surface2)}
 .preview-scroll{overflow-x:auto;max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:6px}
 .col-map-info{padding:10px 14px;font-size:11.5px;color:var(--text2);line-height:1.7;background:var(--surface2);border-radius:8px;border:1px solid var(--border);margin-bottom:10px}
+
+/* ===== AUTOCOMPLETE DROPDOWN ===== */
+.autocomplete-wrap{position:relative}
+.autocomplete-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:9999;background:var(--surface);border:1.5px solid var(--primary2);border-radius:var(--radius-sm);box-shadow:0 8px 28px rgba(10,36,99,.18);max-height:220px;overflow-y:auto;display:none}
+.autocomplete-dropdown.open{display:block}
+.ac-item{padding:9px 13px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .1s;display:flex;flex-direction:column;gap:2px}
+.ac-item:last-child{border-bottom:none}
+.ac-item:hover,.ac-item.highlighted{background:rgba(30,77,183,.07)}
+.ac-name{font-size:12.5px;font-weight:700;color:var(--text)}
+.ac-name mark{background:rgba(30,77,183,.15);color:var(--primary2);border-radius:2px;padding:0 1px}
+.ac-sub{font-size:10.5px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.ac-badge{display:inline-block;font-size:9px;font-weight:700;padding:1px 6px;border-radius:10px;margin-left:5px}
+.ac-badge.excel{background:rgba(6,214,160,.15);color:#07a37a}
+.ac-badge.last{background:rgba(72,202,228,.15);color:#0096c7}
+
+/* Autofill indicator */
+.autofill-tag{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;color:var(--emerald);background:rgba(6,214,160,.1);border:1px solid rgba(6,214,160,.25);border-radius:12px;padding:3px 9px;margin-top:4px}
+.autofill-banner{background:linear-gradient(135deg,rgba(6,214,160,.08),rgba(30,77,183,.06));border:1.5px solid rgba(6,214,160,.3);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:14px;display:none;align-items:center;gap:10px;font-size:12px;font-weight:600;color:#07a37a}
+.autofill-banner.show{display:flex}
+.autofill-banner i{font-size:16px}
+
+/* Opening balance info box */
+.opening-info{font-size:10.5px;color:var(--text3);margin-top:3px;font-style:italic}
+.opening-info.has-data{color:#07a37a;font-weight:600;font-style:normal}
+.opening-info.from-outstanding{color:var(--primary2);font-weight:600;font-style:normal}
+
 @media(max-width:768px){.sidebar{display:none}.main-content,.footer{margin-left:0}.topbar{padding:0 14px}.consol-summary{grid-template-columns:1fr}.col-map-grid{grid-template-columns:1fr}}
 </style>
 </head>
@@ -231,14 +258,48 @@ tbody td.mono{font-family:'JetBrains Mono',monospace;font-size:11.5px}
 <div class="modal-overlay" id="addModal">
   <div class="modal-box">
     <div class="modal-title"><i class="fas fa-user-plus"></i> <span id="modalTitle">Add Driver Entry</span></div>
+
+    <!-- Autofill Banner -->
+    <div class="autofill-banner" id="autofillBanner">
+      <i class="fas fa-magic"></i>
+      <span id="autofillBannerText">Fields auto-filled from Excel database</span>
+    </div>
+
     <div class="form-grid">
       <div class="form-group"><label class="form-label">Entry Date *</label><input type="date" class="form-control" id="f_date"></div>
       <div class="form-group"><label class="form-label">Page No</label><input type="text" class="form-control" id="f_pageno" placeholder="e.g. 497"></div>
-      <div class="form-group"><label class="form-label">Driver Name *</label><input type="text" class="form-control" id="f_name" placeholder="Full Name"></div>
+
+      <!-- Driver Name with Autocomplete -->
+      <div class="form-group" style="position:relative">
+        <label class="form-label"><i class="fas fa-user" style="color:var(--primary2);margin-right:4px"></i>Driver Name *</label>
+        <div class="autocomplete-wrap">
+          <input type="text" class="form-control" id="f_name" placeholder="Type name to search..." autocomplete="off"
+            oninput="onNameInput(this.value)" onkeydown="acKeyNav(event,'nameDropdown')" onfocus="onNameInput(this.value)">
+          <div class="autocomplete-dropdown" id="nameDropdown"></div>
+        </div>
+      </div>
+
       <div class="form-group"><label class="form-label">Contact No</label><input type="text" class="form-control" id="f_contact" placeholder="Mobile Number"></div>
-      <div class="form-group"><label class="form-label">Truck No</label><input type="text" class="form-control" id="f_truck" placeholder="TN 52 XX XXXX"></div>
+
+      <!-- Truck No with Autocomplete -->
+      <div class="form-group" style="position:relative">
+        <label class="form-label"><i class="fas fa-truck" style="color:var(--gold);margin-right:4px"></i>Truck No</label>
+        <div class="autocomplete-wrap">
+          <input type="text" class="form-control" id="f_truck" placeholder="Type truck no..." autocomplete="off"
+            oninput="onTruckInput(this.value)" onkeydown="acKeyNav(event,'truckDropdown')" onfocus="onTruckInput(this.value)">
+          <div class="autocomplete-dropdown" id="truckDropdown"></div>
+        </div>
+      </div>
+
       <div class="form-group"><label class="form-label">DL No</label><input type="text" class="form-control" id="f_dl" placeholder="DL Number"></div>
-      <div class="form-group"><label class="form-label">Opening Balance</label><input type="number" class="form-control" id="f_opening" placeholder="0" oninput="autoCalc()"></div>
+
+      <!-- Opening Balance with source indicator -->
+      <div class="form-group">
+        <label class="form-label"><i class="fas fa-wallet" style="color:var(--emerald);margin-right:4px"></i>Opening Balance</label>
+        <input type="number" class="form-control" id="f_opening" placeholder="0" oninput="autoCalc()">
+        <div class="opening-info" id="openingInfo">Auto-filled from Excel or last entry outstanding</div>
+      </div>
+
       <div class="form-group"><label class="form-label">Settlement</label><input type="number" class="form-control" id="f_settlement" placeholder="0" oninput="autoCalc()"></div>
       <div class="form-group"><label class="form-label">Net Salary</label><input type="number" class="form-control" id="f_netsalary" placeholder="Auto" readonly></div>
       <div class="form-group"><label class="form-label">Paid Salary</label><input type="number" class="form-control" id="f_paid" placeholder="0" oninput="autoCalc()"></div>
@@ -300,6 +361,11 @@ tbody td.mono{font-family:'JetBrains Mono',monospace;font-size:11.5px}
 <div class="toast" id="toast"><i class="fas fa-check-circle"></i> <span id="toastMsg"></span></div>
 
 <script>
+/* ====================================================================
+   EXCEL MASTER DATABASE — 284 drivers from Book5.xlsx
+   ==================================================================== */
+const EXCEL_DB = [{"name":"SIVAKUMAR","truck":"KA 01 AK 2266","dl":"1376","page":"32","opening":30318},{"name":"MUNIRAJ","truck":"KA 01 AK 2288","dl":"1308","page":"253","opening":5041},{"name":"GOBINATH","truck":"KA 01 AK 2288","dl":"1596","page":"273","opening":8888},{"name":"GOVINDARAJU","truck":"KA 01 AK 2288","dl":"1604","page":"285","opening":4102},{"name":"Umesh Hebbali","truck":"KA 01 AK 2288","dl":"803","page":"338","opening":6880},{"name":"GOVINDAN","truck":"KA 01 AL 1266","dl":"980","page":"245","opening":1845},{"name":"RAMESH","truck":"KA 01 AL 1266","dl":"1641","page":"353","opening":0},{"name":"SHEKAPPA CHALAWADGI","truck":"KA 01 AL 1266","dl":"1797","page":"381","opening":0},{"name":"VIJAYAKUMAR","truck":"KA 01 AL 1288","dl":"812","page":"395","opening":400},{"name":"ALFAD N","truck":"KA 01 AL 1288","dl":"1723","page":"497","opening":8510},{"name":"MASANAMUTHU","truck":"TN 52  AA 0033","dl":"1089","page":"121","opening":12380},{"name":"MATHIAS ARUMAI","truck":"TN 52  AA 0033","dl":"1551","page":"181","opening":0},{"name":"JAYARAJ","truck":"TN 52  AA 0033","dl":"1778","page":"467","opening":2804},{"name":"NAVEEN KUMAR","truck":"TN 52  AA 0033","dl":"1572","page":"267","opening":0},{"name":"MADHAVAN","truck":"TN 52  AA 0033","dl":"1461","page":"62","opening":6251},{"name":"ARULRAJ","truck":"TN 52 AA 0077","dl":"1505","page":"93","opening":4690},{"name":"PARTHIPAN","truck":"TN 52 AA 0077","dl":"1436","page":"241","opening":0},{"name":"JAYASEELAN","truck":"TN 52 AA 0077","dl":"1586","page":"259","opening":0},{"name":"LALESAB S SALAWADGI","truck":"TN 52 AA 0077","dl":"1782","page":"477","opening":5741},{"name":"SURESH","truck":"TN 52 AA 0099","dl":"687","page":"549","opening":6376},{"name":"SATHIYARAJ","truck":"TN 52 AA 0333","dl":"1680","page":"409","opening":270},{"name":"UDAYAKUMAR MALI","truck":"TN 52 AA 0333","dl":"826","page":"45","opening":0},{"name":"HARISH KANAKANNAVAR","truck":"TN 52 AA 0333","dl":"1821","page":"222","opening":18199},{"name":"RAM BRISH YADAV","truck":"TN 52 AA 0666","dl":"25","page":"399","opening":0},{"name":"JOHN PAL","truck":"TN 52 AA 0666","dl":"1554","page":"188","opening":11377},{"name":"SURESH M","truck":"TN 52 AA 0666","dl":"1787","page":"506","opening":6327},{"name":"VADIVELAN","truck":"TN 52 AA 2355","dl":"1447","page":"55","opening":0},{"name":"Chidambaram","truck":"TN 52 AA 2355","dl":"","page":"","opening":2350},{"name":"MARAN","truck":"TN 52 AA 2355","dl":"288","page":"216","opening":0},{"name":"KALIMUTHU","truck":"TN 52 AA 2799","dl":"1667","page":"389","opening":0},{"name":"WASIM","truck":"TN 52 AA 2799","dl":"1829","page":"374","opening":0},{"name":"DHIVAKARAN","truck":"TN 52 AA 2799","dl":"1533","page":"159","opening":0},{"name":"PRADHAP","truck":"TN 52 AA 2799","dl":"1196","page":"269","opening":-121},{"name":"ALBIN SHIJU","truck":"TN 52 AA 2799","dl":"1837","page":"358","opening":23080},{"name":"PRAKASH YADAV","truck":"TN 52 AA 3155","dl":"1544","page":"175","opening":0},{"name":"INDRAKANTH","truck":"TN 52 AA 3155","dl":"925","page":"172","opening":-7300},{"name":"VIJAYAKUMAR KALLPUR","truck":"TN 52 AA 3155","dl":"776","page":"73","opening":0},{"name":"SARANAPPA","truck":"TN 52 AA 3155","dl":"1105","page":"339","opening":13450},{"name":"THIRUVENGADAM","truck":"TN 52 AA 3155","dl":"819","page":"487","opening":11476},{"name":"KATHIRAVAN","truck":"TN 52 AA 3177","dl":"1244","page":"425","opening":262},{"name":"MOHAMMAD ISMAIL","truck":"TN 52 AA 3177","dl":"1835","page":"191","opening":0},{"name":"SENTIL","truck":"TN 52 AA 3177","dl":"1598","page":"299","opening":0},{"name":"MANJUPRASAD","truck":"TN 52 AA 3177","dl":"605","page":"323","opening":8570},{"name":"SUDALAI KUMAR S","truck":"TN 52 AA 3177","dl":"1675","page":"419","opening":18475},{"name":"SHIVANYYA S HACHIN","truck":"TN 52 AA 3299","dl":"1200","page":"23","opening":0},{"name":"SUBRAMANI","truck":"TN 52 AA 3299","dl":"1642","page":"351","opening":-5000},{"name":"Kandasamy","truck":"TN 52 AA 3299","dl":"327","page":"102","opening":5927},{"name":"CHENNA GOWDA","truck":"TN 52 AA 3488","dl":"1459","page":"67","opening":165},{"name":"Moorthi B","truck":"TN 52 AA 3488","dl":"1833","page":"270","opening":20729},{"name":"MANIKANDAN","truck":"TN 52 AA 4866","dl":"1435","page":"85","opening":976},{"name":"MAHESH","truck":"TN 52 AA 4866","dl":"1665","page":"373","opening":1420},{"name":"ADARSH V G","truck":"TN 52 AA 4866","dl":"1838","page":"236","opening":20499},{"name":"MURUGAN","truck":"TN 52 AA 5144","dl":"1629","page":"319","opening":5449},{"name":"AJITHKUMAR","truck":"TN 52 AA 5144","dl":"","page":"","opening":0},{"name":"SANKAR","truck":"TN 52 AA 6255","dl":"1339","page":"137","opening":-4714},{"name":"ANSAD","truck":"TN 52 AA 6255","dl":"1661","page":"369","opening":244},{"name":"RAVICHANDRAN","truck":"TN 52 AA 6255","dl":"1522","page":"129","opening":0},{"name":"ASHISH KUMAR MAURYA","truck":"TN 52 AA 6255","dl":"","page":"","opening":0},{"name":"MERA JUDDIN","truck":"TN 52 AA 6233","dl":"1806","page":"136","opening":0},{"name":"VASANTHAKUMAR","truck":"TN 52 AA 6233","dl":"1832","page":"144","opening":0},{"name":"RAJAGOBALA K","truck":"TN 52 AA 6233","dl":"1535","page":"277","opening":-168},{"name":"MANIKANDAN","truck":"TN 52 AA 6233","dl":"599","page":"265","opening":0},{"name":"VELLAVAR","truck":"TN 52 AA 6566","dl":"1621","page":"289","opening":0},{"name":"MAREESWARAN","truck":"TN 52 AA 6755","dl":"1462","page":"59","opening":0},{"name":"ALAGU CHOKKAN","truck":"TN 52 AA 6755","dl":"1565","page":"203","opening":5000},{"name":"MOORTY","truck":"TN 52 AA 6755","dl":"1575","page":"235","opening":0},{"name":"ALBIN SHIJU","truck":"TN 52 AA 6755","dl":"1837","page":"358","opening":8580},{"name":"SANOTHESH EMMI","truck":"TN 52 AA 7988","dl":"1468","page":"53","opening":0},{"name":"THAYAPANDI","truck":"TN 52 AA 7988","dl":"1417","page":"113","opening":-3451},{"name":"SIDHURAJ","truck":"TN 52 AA 7988","dl":"1516","page":"355","opening":7798},{"name":"GANESA PANDIYAN","truck":"TN 52 AA 7988","dl":"1726","page":"493","opening":15555},{"name":"MUTHUKUMAR","truck":"TN 52 AA 8177","dl":"1681","page":"405","opening":3320},{"name":"JAGADESWARAN","truck":"TN 52 AA 8177","dl":"1620","page":"295","opening":4985},{"name":"JAINULLABUDEEN S","truck":"TN 52 AA 8177","dl":"1825","page":"186","opening":5864},{"name":"MOHAMMED SHAJITH","truck":"TN 52 AA 8199","dl":"1541","page":"171","opening":964},{"name":"SANTHOSH","truck":"TN 52 AA 8199","dl":"1039","page":"97","opening":-21787},{"name":"ARUNKUMAR","truck":"TN 52 AA 8199","dl":"1625","page":"331","opening":528},{"name":"PRAVIN KUMAR","truck":"TN 52 AA 8199","dl":"1668","page":"442","opening":5893},{"name":"HANMAAP","truck":"TN 52 AA 8388","dl":"1803","page":"380","opening":150},{"name":"ARUN KARUNA","truck":"TN 52 AA 8388","dl":"1411","page":"106","opening":-2593},{"name":"AJITHKUMAR","truck":"TN 52 AA 8388","dl":"1492","page":"157","opening":0},{"name":"PANEERSELVAM","truck":"TN 52 AA 8388","dl":"1576","page":"237","opening":4715},{"name":"SIVAKUMAR","truck":"TN 52 AA 8388","dl":"1622","page":"301","opening":0},{"name":"LALU","truck":"TN 52 AA 8388","dl":"1662","page":"371","opening":500},{"name":"PRAVEEN KUMAR","truck":"TN 52 AA 8388","dl":"1721","page":"495","opening":5250},{"name":"GANESHAPERUMAL","truck":"TN 52 AA 8388","dl":"1467","page":"262","opening":0},{"name":"SURESH AMBADAGATTI","truck":"TN 52 AA 9822","dl":"1519","page":"133","opening":0},{"name":"RAJA","truck":"TN 52 AA 9822","dl":"1502","page":"83","opening":-1000},{"name":"JAYA SIMMAN","truck":"TN 52 AA 9822","dl":"1577","page":"243","opening":0},{"name":"MEENAKSHI SUNDRAM","truck":"TN 52 AA 9822","dl":"1647","page":"357","opening":0},{"name":"SATHISH DATTU DOLARE","truck":"TN 52 AA 9822","dl":"1777","page":"511","opening":8551},{"name":"RAMESH N DOLASE","truck":"TN 52 AB 0011","dl":"1800","page":"503","opening":7361},{"name":"ALAGURAJU","truck":"TN 52 AB 0044","dl":"768","page":"153","opening":0},{"name":"PRAKASH","truck":"TN 52 AB 0044","dl":"1600","page":"307","opening":-2342},{"name":"MALAIRAJAN.M","truck":"TN 52 AB 0044","dl":"1742","page":"551","opening":14724},{"name":"AJITH","truck":"TN 52 AB 3344","dl":"1478","page":"149","opening":0},{"name":"MALLANGOUDA","truck":"TN 52 AB 3344","dl":"1601","page":"305","opening":275},{"name":"MAJUAPPA","truck":"TN 52 AB 3344","dl":"1633","page":"347","opening":-1088},{"name":"ROSHAN P S","truck":"TN 52 AB 3344","dl":"1840","page":"542","opening":0},{"name":"MANUPRASAD","truck":"TN 52 AB 3455","dl":"1655","page":"401","opening":0},{"name":"GOPI","truck":"TN 52 AB 3455","dl":"1536","page":"165","opening":0},{"name":"PERUMAL","truck":"TN 52 AB 3455","dl":"1563","page":"239","opening":0},{"name":"MANOJ V","truck":"TN 52 AB 3455","dl":"1731","page":"529","opening":5340},{"name":"KARUPPASAMY","truck":"TN 52 AB 3566","dl":"1526","page":"145","opening":0},{"name":"RAVI MARAN","truck":"TN 52 AB 3566","dl":"1561","page":"231","opening":0},{"name":"SELVARAJ","truck":"TN 52 AB 3566","dl":"1614","page":"293","opening":0},{"name":"Basavaraj Chougala","truck":"TN 52 AB 3566","dl":"1061","page":"18","opening":5985},{"name":"POWNRAJ","truck":"TN 52 AB 3577","dl":"1425","page":"87","opening":-12202},{"name":"ARUNPANDIYAN","truck":"TN 52 AB 3577","dl":"1766","page":"541","opening":0},{"name":"VIJAYAKUMAR","truck":"TN 52 AB 3599","dl":"1384","page":"111","opening":0},{"name":"LAKSHMANAN","truck":"TN 52 AB 3599","dl":"1112","page":"29","opening":2164},{"name":"NEELAMEGAM","truck":"TN 52 AB 3599","dl":"1319","page":"385","opening":8021},{"name":"SANKAR S","truck":"TN 52 AB 3933","dl":"1507","page":"99","opening":18128},{"name":"RAMASUBMANIYAN","truck":"TN 52 AB 3933","dl":"1503","page":"79","opening":252},{"name":"KANDASAMY G","truck":"TN 52 AB 3933","dl":"1753","page":"519","opening":6931},{"name":"UMESH HUBLI","truck":"TN 52 AB 4004","dl":"803","page":"338","opening":0},{"name":"PRAVEEN KUMAR","truck":"TN 52 AB 4004","dl":"1721","page":"495","opening":0},{"name":"RAVI BELAWADI","truck":"TN 52 AB 5000","dl":"1550","page":"183","opening":8819},{"name":"RAJENDRAN R (NEW)","truck":"TN 52 AB 5000","dl":"1110","page":"346","opening":7623},{"name":"BABESH","truck":"TN 52 AB 6166","dl":"1518","page":"131","opening":0},{"name":"DHARMARAJ YADAV","truck":"TN 52 AB 6166","dl":"1499","page":"115","opening":0},{"name":"ANBURAJ","truck":"TN 52 AB 6166","dl":"1594","page":"333","opening":72},{"name":"MUTHURAJA","truck":"TN 52 AB 6166","dl":"1567","page":"206","opening":6451},{"name":"Basavaraj Hanagal","truck":"TN 52 AB 6299","dl":"1710","page":"475","opening":5948},{"name":"SELVAGANAPATHY","truck":"TN 52 AB 6611","dl":"271","page":"77","opening":0},{"name":"SUNDARAN","truck":"TN 52 AB 6611","dl":"1546","page":"197","opening":0},{"name":"SHIVRAJ","truck":"TN 52 AB 6611","dl":"1842","page":"331","opening":7020},{"name":"PERUMAL","truck":"TN 52 AB 7007","dl":"1564","page":"201","opening":2896},{"name":"SANTHOSHKUMAR","truck":"TN 52 AB 7007","dl":"1051","page":"227","opening":0},{"name":"AJMAT PATHAN","truck":"TN 52 AB 7007","dl":"1812","page":"384","opening":13570},{"name":"SHARANAPPA KANDAGAL","truck":"TN 52 AB 7133","dl":"1678","page":"411","opening":6954},{"name":"MANJUNATH","truck":"TN 52 AB 7133","dl":"1571","page":"225","opening":835},{"name":"PERUMAL","truck":"TN 52 AB 7133","dl":"1616","page":"309","opening":9028},{"name":"NATARAJAN","truck":"TN 52 AB 7133","dl":"1348","page":"44","opening":5666},{"name":"RAJA","truck":"TN 52 AB 7199","dl":"1548","page":"199","opening":4320},{"name":"SUBRAMANI","truck":"TN 52 AB 7199","dl":"1585","page":"257","opening":0},{"name":"SEENIVASAN","truck":"TN 52 AB 7199","dl":"1529","page":"291","opening":969},{"name":"VIJAY RAJ PAL","truck":"TN 52 AB 7199","dl":"1747","page":"513","opening":7638},{"name":"JAYACHANDRAN","truck":"TN 52 AB 7244","dl":"1682","page":"417","opening":12180},{"name":"PRADEEP","truck":"TN 52 AB 7244","dl":"1434","page":"397","opening":0},{"name":"SURESH","truck":"TN 52 AB 7244","dl":"1666","page":"387","opening":3086},{"name":"NAGENDRAN","truck":"TN 52 AB 7244","dl":"1820","page":"218","opening":9007},{"name":"JEEVAN KUMAR","truck":"TN 52 AB 8000","dl":"1003","page":"19","opening":29321},{"name":"RAMRAJ","truck":"TN 52 AB 8000","dl":"1423","page":"49","opening":0},{"name":"MUTHUVEL MURUGAN","truck":"TN 52 AB 8000","dl":"1632","page":"327","opening":0},{"name":"MOHAMMED KHUR BATHULLA","truck":"TN 52 AB 8000","dl":"1807","page":"134","opening":0},{"name":"FIROJ MULLA","truck":"TN 52 AC 4233","dl":"1559","page":"223","opening":0},{"name":"ANANDAPANDY P","truck":"TN 52 AC 4233","dl":"1523","page":"152","opening":6135},{"name":"SHIVARAJ N","truck":"TN 52 AC 4255","dl":"1520","page":"147","opening":1493},{"name":"PRABU LINGAM","truck":"TN 52 AC 4255","dl":"1776","page":"538","opening":26126},{"name":"MURUGESAN","truck":"TN 52 AC 4288","dl":"1187","page":"25","opening":0},{"name":"SHANKAR R","truck":"TN 52 AC 4288","dl":"1644","page":"367","opening":3027},{"name":"RAJESH KUMAR","truck":"TN 52 AC 4288","dl":"1815","page":"490","opening":5852},{"name":"AMALJITH","truck":"TN 52 AC 4611","dl":"1835","page":"184","opening":0},{"name":"RAJU M HIWALE","truck":"TN 52 AC 4611","dl":"1817","page":"382","opening":5900},{"name":"RAJASEKAR","truck":"TN 52 AC 4633","dl":"1337","page":"407","opening":-8461},{"name":"SHARANAPPA","truck":"TN 52 AC 4633","dl":"1099","page":"43","opening":23674},{"name":"PRAVEENKUMAR","truck":"TN 52 AC 4633","dl":"1831","page":"284","opening":6409},{"name":"MAHINDRAN","truck":"TN 52 AC 7333","dl":"1805","page":"132","opening":13797},{"name":"SANTHOSH SAMBHAJI","truck":"TN 52 AC 7366","dl":"1648","page":"393","opening":0},{"name":"ALAGARSAMAY","truck":"TN 52 AC 7366","dl":"1441","page":"57","opening":0},{"name":"SULEMAN S NADAF","truck":"TN 52 AC 7366","dl":"1483","page":"65","opening":-3102},{"name":"MUSTAK","truck":"TN 52 AC 7366","dl":"7366","page":"185","opening":0},{"name":"PARASURAM","truck":"TN 52 AC 7366","dl":"1673","page":"483","opening":5265},{"name":"SELVAKUMAR","truck":"TN 52 AC 7455","dl":"1637","page":"335","opening":5620},{"name":"SATHISH","truck":"TN 52 AC 7455","dl":"1636","page":"329","opening":0},{"name":"DHARMALINGAM","truck":"TN 52 AC 7555","dl":"1693","page":"379","opening":19},{"name":"SELVAKUMAR","truck":"TN 52 AC 7555","dl":"1595","page":"275","opening":0},{"name":"RAVICHANDRAN R","truck":"TN 52 AC 7555","dl":"1798","page":"396","opening":5278},{"name":"PONRAJ","truck":"TN 52 AC 7855","dl":"1846","page":"330","opening":4260},{"name":"KALIYAMOORTHY","truck":"TN 52 AC 7855","dl":"1163","page":"221","opening":-13080},{"name":"SANTHOSH KUMAR PAL","truck":"TN 52 AC 8166","dl":"1542","page":"174","opening":0},{"name":"SENTHIL RAJAN","truck":"TN 52 AC 8166","dl":"1496","page":"69","opening":1270},{"name":"AKILAN S","truck":"TN 52 AC 8166","dl":"1843","page":"434","opening":3150},{"name":"BASAVARAJ REDDY","truck":"TN 52 AD 3944","dl":"773","page":"15","opening":0},{"name":"CYRIL LOURDUSAMY","truck":"TN 52 AD 3944","dl":"1487","page":"71","opening":0},{"name":"KANHAIYALAL YADAV","truck":"TN 52 AD 3944","dl":"1393","page":"51","opening":6346},{"name":"KRISHNA PERUMAL","truck":"TN 52 AD 3944","dl":"808","page":"315","opening":0},{"name":"HARISH HASAN","truck":"TN 52 AD 3944","dl":"1690","page":"445","opening":0},{"name":"JEGATHISH","truck":"TN 52 AD 4088","dl":"1416","page":"263","opening":-823},{"name":"SAKEER","truck":"TN 52 AD 4088","dl":"1508","page":"46","opening":0},{"name":"RAJEESH KUMAR","truck":"TN 52 AD 4088","dl":"1826","page":"212","opening":11042},{"name":"MANTHESH","truck":"TN 52 AD 4133","dl":"645","page":"413","opening":1108},{"name":"VITAL PATIL","truck":"TN 52 AD 4133","dl":"1652","page":"383","opening":3436},{"name":"SATBA MANGULKAR","truck":"TN 52 AD 4133","dl":"1654","page":"391","opening":36406},{"name":"UMESH RAJA","truck":"TN 52 AD 4355","dl":"1360","page":"92","opening":-76},{"name":"BASAVARAJ MELLALLI","truck":"TN 52 AD 4355","dl":"1674","page":"457","opening":16601},{"name":"CHANDRASEKAARAN","truck":"TN 52 AD 4755","dl":"1330","page":"95","opening":0},{"name":"MANIKANDAN","truck":"TN 52 AD 4755","dl":"1734","page":"517","opening":0},{"name":"SARAVANAKUMAR","truck":"TN 52 AD 4755","dl":"1708","page":"469","opening":20806},{"name":"SHIVANAND","truck":"TN 52 AD 4988","dl":"740","page":"13","opening":-2456},{"name":"GANESH TAYADE","truck":"TN 52 AD 4988","dl":"1779","page":"447","opening":6064},{"name":"SANTHRUKUMAR","truck":"TN 52 AD 9488","dl":"1495","page":"109","opening":391},{"name":"IRRANNA","truck":"TN 52 AD 9488","dl":"1109","page":"47","opening":2189},{"name":"DINESHKUMAR","truck":"TN 52 AD 9488","dl":"1610","page":"304","opening":18745},{"name":"SATHIYARAJ S","truck":"TN 52 AD 9866","dl":"1781","page":"523","opening":16532},{"name":"ARJUN","truck":"TN 52 AE 1244","dl":"889","page":"21","opening":1448},{"name":"YOGESH PATIL","truck":"TN 52 AE 1244","dl":"1770","page":"555","opening":0},{"name":"NAGARAJU","truck":"TN 52 AE 1388","dl":"499","page":"164","opening":0},{"name":"BHANU PAL","truck":"TN 52 AE 1544","dl":"1823","page":"388","opening":5860},{"name":"THIRUPATHI R","truck":"TN 52 AE 3533","dl":"1686","page":"449","opening":17561},{"name":"KALAISELVAM","truck":"TN 52 AE 3866","dl":"1284","page":"124","opening":0},{"name":"ESHWAR","truck":"TN 52 AE 3866","dl":"1813","page":"264","opening":19327},{"name":"VALMIK PATIL","truck":"TN 52 AE 4244","dl":"1735","page":"535","opening":5285},{"name":"Saravanan","truck":"TN 52 AE 4699","dl":"1504","page":"154","opening":6404},{"name":"KARTHICK","truck":"TN 52 AE 4955","dl":"800","page":"140","opening":5806},{"name":"VITTAL DR","truck":"TN 52 AE 8155","dl":"1802","page":"456","opening":8880},{"name":"SIVAKUMAR","truck":"TN 52 AE 8399","dl":"1540","page":"167","opening":29},{"name":"MANIKANDAN","truck":"TN 52 AE 8399","dl":"599","page":"265","opening":6062},{"name":"HARISHA","truck":"TN 52 AE 8399","dl":"769","page":"12","opening":3000},{"name":"NAMDEV GHEMBADE","truck":"TN 52 AE 8555","dl":"1410","page":"377","opening":6991},{"name":"AMRISH","truck":"TN 52 AE 8699","dl":"1477","page":"63","opening":75},{"name":"Rajesh Patil","truck":"TN 52 AE 8699","dl":"1165","page":"178","opening":21883},{"name":"MANO BHARATHI","truck":"TN 52 AE 8744","dl":"1631","page":"344","opening":0},{"name":"SUDHAKAR T","truck":"TN 52 AE 8744","dl":"1839","page":"252","opening":0},{"name":"SANTHOSH D PATIL","truck":"TN 52 AE 9677","dl":"1517","page":"123","opening":377},{"name":"Sasikumar","truck":"TN 52 AE 9677","dl":"1602","page":"280","opening":20177},{"name":"RAJKUMAR R","truck":"TN 52 AF 1699","dl":"1745","page":"531","opening":5280},{"name":"ARUN KARAN","truck":"TN 52 AF 1699","dl":"1411","page":"106","opening":9407},{"name":"PRATHAP A","truck":"TN 52 AF 1766","dl":"1562","page":"219","opening":48049},{"name":"SRINIVASAN","truck":"TN 52 AF 1766","dl":"1628","page":"313","opening":6237},{"name":"SARAVAVAN V","truck":"TN 52 AF 2399","dl":"743","page":"169","opening":17264},{"name":"ARUN PATIL","truck":"TN 52 AF 3677","dl":"1148","page":"76","opening":4799},{"name":"VAISAKH","truck":"TN 52 H 7166","dl":"1659","page":"403","opening":310},{"name":"HARI RAM SUNDAR B","truck":"TN 52 H 7166","dl":"1740","page":"543","opening":0},{"name":"PRAKASH","truck":"TN 52 H 7355","dl":"1286","page":"89","opening":3894},{"name":"VINAYA","truck":"TN 52 H 7355","dl":"1300","page":"33","opening":0},{"name":"MALAISAMY","truck":"TN 52 H 7355","dl":"1630","page":"325","opening":364},{"name":"RAHUL ES","truck":"TN 52 H 7355","dl":"1792","page":"547","opening":14796},{"name":"VINOTH KUMAR","truck":"TN 52 L 5866","dl":"1387","page":"141","opening":677},{"name":"ADAIKKALAM V","truck":"TN 52 L 5866","dl":"1827","page":"176","opening":12040},{"name":"THESINGURAJA","truck":"TN 52 L 5941","dl":"1270","page":"195","opening":-2483},{"name":"MANIKANDAN","truck":"TN 52 L 5941","dl":"1573","page":"249","opening":144},{"name":"SOUNDARAJAN","truck":"TN 52 L 5941","dl":"1624","page":"297","opening":0},{"name":"JACOB MERLIN RAJ","truck":"TN 52 L 5941","dl":"1775","page":"501","opening":5357},{"name":"JOSEBHARULNESAN","truck":"TN 52 L 6124","dl":"1429","page":"251","opening":-18705},{"name":"PERIYASAMY","truck":"TN 52 L 6140","dl":"1190","page":"286","opening":0},{"name":"SUNIL KUMAR","truck":"TN 52 L 6140","dl":"1611","page":"283","opening":0},{"name":"JOHNSON","truck":"TN 52 L 6349","dl":"1257","page":"427","opening":9075},{"name":"CHARLES MUTHURAJ","truck":"TN 52 L 6349","dl":"1510","page":"105","opening":0},{"name":"VELU MATHAN","truck":"TN 52 L 6349","dl":"1638","page":"341","opening":0},{"name":"PACHAIAPPAN R","truck":"TN 52 L 6349","dl":"1525","page":"509","opening":2214},{"name":"KARTHIKEYAN","truck":"TN 52 L 6925","dl":"1217","page":"162","opening":5334},{"name":"SHAJU","truck":"TN 52 L 6964","dl":"1646","page":"365","opening":0},{"name":"SAKTHIVEL","truck":"TN 52 L 6964","dl":"1501","page":"118","opening":4700},{"name":"PACKLAND","truck":"TN 52 L 7004","dl":"1500","page":"103","opening":0},{"name":"SANKAR T","truck":"TN 52 L 7004","dl":"1547","page":"210","opening":4109},{"name":"MURUGAN","truck":"TN 52 L 7024","dl":"1302","page":"39","opening":-640},{"name":"MAGALINGAM","truck":"TN 52 L 7024","dl":"1582","page":"317","opening":0},{"name":"RAMESH","truck":"TN 52 L 7024","dl":"1338","page":"545","opening":4827},{"name":"PRADAP","truck":"TN 52 P 4630","dl":"1562","page":"219","opening":0},{"name":"SUNILKUMAR","truck":"TN 52 P 4630","dl":"1639","page":"349","opening":89},{"name":"KEWALSWAMY","truck":"TN 52 P 4630","dl":"445","page":"192","opening":-600},{"name":"VENKATESH","truck":"TN 52 P 4654","dl":"602","page":"271","opening":0},{"name":"PERIYASAMY","truck":"TN 52 P 4654","dl":"1618","page":"321","opening":0},{"name":"S KARTHICK","truck":"TN 52 P 4654","dl":"1683","page":"424","opening":13864},{"name":"SANTHOSH NALTE","truck":"TN 52 R 3255","dl":"1557","page":"233","opening":1890},{"name":"Vinod Yadav","truck":"TN 52 R 3255","dl":"1482","page":"81","opening":10341},{"name":"RAM MANI NAI","truck":"TN 52 R 5688","dl":"1524","page":"135","opening":0},{"name":"VIJAY","truck":"TN 52 R 5688","dl":"497","page":"229","opening":0},{"name":"BUDDESAB","truck":"TN 52 R 5688","dl":"1619","page":"281","opening":274},{"name":"MARIMUTHU","truck":"TN 52 R 5688","dl":"1818","page":"508","opening":23804},{"name":"VENKATESHKANNA","truck":"TN 52 R 6288","dl":"1095","page":"255","opening":0},{"name":"ARUNKUMAR","truck":"TN 52 R 6288","dl":"1658","page":"361","opening":1399},{"name":"RAJARAM","truck":"TN 52 R 6288","dl":"1566","page":"208","opening":0},{"name":"Jagathesh kumar K","truck":"TN 52 R 6355","dl":"1578","page":"248","opening":22991},{"name":"RAJA","truck":"TN 52 R 6377","dl":"","page":"179","opening":13283},{"name":"MAHESHKUMAR","truck":"TN 52 R 6377","dl":"1635","page":"375","opening":0},{"name":"SAMEER R","truck":"TN 52 R 6377","dl":"1705","page":"473","opening":0},{"name":"SUNDARAPANDIYAN","truck":"TN 52 R 6377","dl":"","page":"334","opening":18000},{"name":"VETRIVEL","truck":"TN 52 R 6588","dl":"1475","page":"193","opening":-8000},{"name":"CITIZEN","truck":"TN 52 R 6588","dl":"1282","page":"311","opening":0},{"name":"ROHIT","truck":"TN 52 R 6588","dl":"1758","page":"394","opening":5874},{"name":"AKASH","truck":"TN 52 R 9266","dl":"1623","page":"287","opening":0},{"name":"VELUMARUTI PONDIT","truck":"TN 52 R 9266","dl":"1634","page":"359","opening":5296},{"name":"KARUPPASAMY","truck":"TN 52 R 9266","dl":"1824","page":"213","opening":6247},{"name":"MANOJ VARMA","truck":"TN 52 R 9366","dl":"1515","page":"125","opening":350},{"name":"NATWAR LAL YADAV","truck":"TN 52 R 9366","dl":"1476","page":"217","opening":10448},{"name":"MANOJKUMAR","truck":"TN 52 R 9366","dl":"1663","page":"363","opening":-3888},{"name":"JAWAHARLAL","truck":"TN 52 R 9366","dl":"1714","page":"481","opening":6611},{"name":"PRASHANT CHOUGULE","truck":"TN 52 R 9766","dl":"1513","page":"119","opening":60},{"name":"RATHINAVEL PANDIAN S","truck":"TN 52 R 9766","dl":"1552","page":"190","opening":14293},{"name":"Kemanna Kattimani","truck":"TN 52 R 9855","dl":"1212","page":"260","opening":16580},{"name":"BASSAPPA NIDAGUNDI","truck":"TN 52 R 9959","dl":"1754","page":"525","opening":14318}];
+
 /* ===== DATA LAYER ===== */
 const MONTHS=['Apr-25','May-25','Jun-25','Jul-25','Aug-25','Sep-25','Oct-25','Nov-25','Dec-25','Jan-26','Feb-26','Mar-26','Apr-26'];
 let editId=null,selectedMonth='Mar-26',mileageMonth='Mar-26';
@@ -313,7 +379,7 @@ document.getElementById('topDate').textContent=new Date().toLocaleDateString('en
 /* ===== UTILS ===== */
 function fmt(n){return Number(n||0).toLocaleString('en-IN')}
 function parseNum(v){if(v===''||v===null||v===undefined||v==='*')return 0;let s=String(v).trim();if(/^\(.*\)$/.test(s))s='-'+s.replace(/^\(/,'').replace(/\)$/,'');if(s==='- 0'||s==='-0')return 0;s=s.replace(/[₹,\s]/g,'');const n=parseFloat(s);return isNaN(n)?0:n}
-function closeModal(id){document.getElementById(id).classList.remove('show')}
+function closeModal(id){document.getElementById(id).classList.remove('show');closeAllDropdowns()}
 function showToast(m,t='success'){const e=document.getElementById('toast');e.className='toast show '+t;document.getElementById('toastMsg').textContent=m;setTimeout(()=>e.className='toast',4000)}
 function cleanStr(v){return String(v||'').replace(/\*/g,'').trim()}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
@@ -324,10 +390,222 @@ function showSection(n){document.querySelectorAll('.section').forEach(s=>s.class
 /* ===== HOME ===== */
 function renderHome(){const net=entries.reduce((s,e)=>s+(parseFloat(e.netsalary)||0),0),paid=entries.reduce((s,e)=>s+(parseFloat(e.paid)||0),0),out=entries.reduce((s,e)=>s+(parseFloat(e.outstanding)||0),0);document.getElementById('homeStat').innerHTML=`<div class="stat-card blue"><div class="stat-label">Total Entries</div><div class="stat-val">${entries.length}</div></div><div class="stat-card red"><div class="stat-label">Net Salary</div><div class="stat-val">${fmt(net)}</div></div><div class="stat-card green"><div class="stat-label">Paid Salary</div><div class="stat-val">${fmt(paid)}</div></div><div class="stat-card orange"><div class="stat-label">Outstanding</div><div class="stat-val">${fmt(out)}</div></div><div class="stat-card sky"><div class="stat-label">Mileage Records</div><div class="stat-val">${mileageData.length}</div></div>`}
 
-/* ===== ADD/EDIT ===== */
-function openAddModal(id=null){editId=id;document.getElementById('modalTitle').textContent=id?'Edit Driver Entry':'Add Driver Entry';const t=new Date().toISOString().split('T')[0];const F=['f_date','f_pageno','f_name','f_contact','f_truck','f_dl','f_opening','f_settlement','f_netsalary','f_paid','f_outstanding','f_remarks'];if(id){const e=entries.find(x=>x.id===id);if(!e)return;F.forEach(k=>document.getElementById(k).value='');document.getElementById('f_date').value=e.date||t;document.getElementById('f_pageno').value=e.pageno||'';document.getElementById('f_name').value=e.name||'';document.getElementById('f_contact').value=e.contact||'';document.getElementById('f_truck').value=e.truck||'';document.getElementById('f_dl').value=e.dl||'';document.getElementById('f_opening').value=e.opening||'';document.getElementById('f_settlement').value=e.settlement||'';document.getElementById('f_netsalary').value=e.netsalary||'';document.getElementById('f_paid').value=e.paid||'';document.getElementById('f_outstanding').value=e.outstanding||'';document.getElementById('f_remarks').value=e.remarks||''}else{F.forEach(k=>document.getElementById(k).value='');document.getElementById('f_date').value=t}document.getElementById('addModal').classList.add('show')}
-function autoCalc(){const o=parseFloat(document.getElementById('f_opening').value)||0,s=parseFloat(document.getElementById('f_settlement').value)||0,p=parseFloat(document.getElementById('f_paid').value)||0;document.getElementById('f_netsalary').value=o+s||'';document.getElementById('f_outstanding').value=(o+s-p)||''}
-function saveEntry(){const nm=document.getElementById('f_name').value.trim(),dt=document.getElementById('f_date').value;if(!nm||!dt){showToast('Name and Date required!','error');return}const e={id:editId||uid(),date:dt,pageno:document.getElementById('f_pageno').value,name:nm,contact:document.getElementById('f_contact').value,truck:document.getElementById('f_truck').value,dl:document.getElementById('f_dl').value,opening:document.getElementById('f_opening').value,settlement:document.getElementById('f_settlement').value,netsalary:document.getElementById('f_netsalary').value,paid:document.getElementById('f_paid').value,outstanding:document.getElementById('f_outstanding').value,remarks:document.getElementById('f_remarks').value};if(editId){const i=entries.findIndex(x=>x.id===editId);entries[i]=e}else entries.push(e);sv('mmrw_entries',entries);closeModal('addModal');renderDailyTable();showToast(editId?'Updated!':'Saved!');editId=null}
+/* ====================================================================
+   SMART AUTOFILL ENGINE
+   ==================================================================== */
+
+let acHighlight = {nameDropdown:-1, truckDropdown:-1};
+
+function norm(s){return String(s||'').toLowerCase().replace(/\s+/g,' ').trim()}
+
+/* Search Excel DB by name */
+function searchByName(q){
+  if(!q||q.length<1) return [];
+  const nq=norm(q);
+  return EXCEL_DB.filter(d=>norm(d.name).includes(nq)).slice(0,10);
+}
+
+/* Search Excel DB by truck */
+function searchByTruck(q){
+  if(!q||q.length<1) return [];
+  const nq=norm(q);
+  return EXCEL_DB.filter(d=>norm(d.truck).includes(nq)).slice(0,10);
+}
+
+/* Get last outstanding from saved entries for a driver (by name+truck) */
+function getLastOutstanding(name,truck){
+  const matched=entries.filter(e=>
+    norm(e.name)===norm(name)&&(truck?norm(e.truck)===norm(truck):true)
+  ).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  if(matched.length>0){
+    const last=matched[0];
+    return{value:parseFloat(last.outstanding)||0,date:last.date,source:'last_entry'};
+  }
+  return null;
+}
+
+/* Apply autofill from an Excel DB record */
+function applyAutofill(record,source='excel'){
+  // Fill truck, DL, page if empty
+  const truckEl=document.getElementById('f_truck');
+  const dlEl=document.getElementById('f_dl');
+  const pageEl=document.getElementById('f_pageno');
+  const openingEl=document.getElementById('f_opening');
+  const openingInfo=document.getElementById('openingInfo');
+  const banner=document.getElementById('autofillBanner');
+  const bannerText=document.getElementById('autofillBannerText');
+
+  if(record.truck){truckEl.value=record.truck;truckEl.classList.add('autofilled')}
+  if(record.dl){dlEl.value=record.dl;dlEl.classList.add('autofilled')}
+  if(record.page){pageEl.value=record.page;pageEl.classList.add('autofilled')}
+
+  // For opening balance: first check last outstanding from saved entries
+  const lastOut=getLastOutstanding(record.name,record.truck);
+  if(lastOut){
+    openingEl.value=lastOut.value;
+    openingEl.classList.add('autofilled');
+    openingInfo.textContent=`📋 Last entry outstanding (${lastOut.date}) → ₹${fmt(lastOut.value)}`;
+    openingInfo.className='opening-info from-outstanding';
+    bannerText.textContent=`Fields auto-filled! Opening Balance = Last outstanding on ${lastOut.date}`;
+  }else if(record.opening!==0){
+    openingEl.value=record.opening;
+    openingEl.classList.add('autofilled');
+    openingInfo.textContent=`📊 From Excel database → ₹${fmt(record.opening)}`;
+    openingInfo.className='opening-info has-data';
+    bannerText.textContent=`Fields auto-filled from Excel database for ${record.name}`;
+  }else{
+    openingEl.value='';
+    openingEl.classList.remove('autofilled');
+    openingInfo.textContent='No opening balance found in Excel';
+    openingInfo.className='opening-info';
+    bannerText.textContent=`Truck, DL & Page auto-filled from Excel for ${record.name}`;
+  }
+
+  banner.classList.add('show');
+  autoCalc();
+}
+
+function clearAutofillStyles(){
+  ['f_truck','f_dl','f_pageno','f_opening'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.classList.remove('autofilled');
+  });
+  document.getElementById('autofillBanner').classList.remove('show');
+  document.getElementById('openingInfo').textContent='Auto-filled from Excel or last entry outstanding';
+  document.getElementById('openingInfo').className='opening-info';
+}
+
+/* ---- NAME AUTOCOMPLETE ---- */
+function onNameInput(val){
+  clearAutofillStyles();
+  const results=searchByName(val);
+  showDropdown('nameDropdown',results,val,'name',function(record){
+    document.getElementById('f_name').value=record.name;
+    closeAllDropdowns();
+    applyAutofill(record,'excel');
+  });
+}
+
+/* ---- TRUCK AUTOCOMPLETE ---- */
+function onTruckInput(val){
+  const results=searchByTruck(val);
+  showDropdown('truckDropdown',results,val,'truck',function(record){
+    document.getElementById('f_truck').value=record.truck;
+    // If name is empty, fill name too
+    const nameEl=document.getElementById('f_name');
+    if(!nameEl.value.trim()){
+      nameEl.value=record.name;
+      applyAutofill(record,'excel');
+    }else{
+      // If name already set, only update DL/page if matching
+      const curName=norm(nameEl.value);
+      if(norm(record.name)===curName){
+        applyAutofill(record,'excel');
+      }else{
+        // Just fill DL and page from this truck driver
+        const dlEl=document.getElementById('f_dl');
+        const pageEl=document.getElementById('f_pageno');
+        if(record.dl){dlEl.value=record.dl;dlEl.classList.add('autofilled')}
+        if(record.page){pageEl.value=record.page;pageEl.classList.add('autofilled')}
+      }
+    }
+    closeAllDropdowns();
+  });
+}
+
+/* ---- DROPDOWN RENDER ---- */
+function showDropdown(dropId,results,query,labelField,onSelect){
+  const drop=document.getElementById(dropId);
+  if(!results.length){drop.innerHTML='';drop.classList.remove('open');return}
+  const nq=norm(query);
+  drop.innerHTML=results.map((r,i)=>{
+    const rawLabel=r[labelField];
+    const marked=rawLabel.replace(new RegExp('('+nq.replace(/[-[\]{}()*+?.,\\^$|#\s]/g,'\\$&')+')','gi'),'<mark>$1</mark>');
+    const lastOut=getLastOutstanding(r.name,r.truck);
+    const openingDisplay=lastOut?`Outstanding: ₹${fmt(lastOut.value)} (${lastOut.date})`:r.opening?`Opening: ₹${fmt(r.opening)}`:'';
+    const badgeSrc=lastOut?`<span class="ac-badge last">Last Entry</span>`:`<span class="ac-badge excel">Excel DB</span>`;
+    return `<div class="ac-item" data-idx="${i}" onmousedown="event.preventDefault()" onclick="acSelect('${dropId}',${i})">
+      <div class="ac-name">${marked}${badgeSrc}</div>
+      <div class="ac-sub">${r.truck||''} ${r.dl?'| DL: '+r.dl:''} ${openingDisplay?'| '+openingDisplay:''}</div>
+    </div>`;
+  }).join('');
+  drop._results=results;
+  drop._onSelect=onSelect;
+  drop.classList.add('open');
+  acHighlight[dropId]=-1;
+}
+
+function acSelect(dropId,idx){
+  const drop=document.getElementById(dropId);
+  if(drop._results&&drop._onSelect) drop._onSelect(drop._results[idx]);
+}
+
+function closeAllDropdowns(){
+  document.querySelectorAll('.autocomplete-dropdown').forEach(d=>{d.classList.remove('open');d.innerHTML=''});
+}
+
+function acKeyNav(e,dropId){
+  const drop=document.getElementById(dropId);
+  if(!drop.classList.contains('open')) return;
+  const items=drop.querySelectorAll('.ac-item');
+  if(!items.length) return;
+  if(e.key==='ArrowDown'){e.preventDefault();acHighlight[dropId]=Math.min(acHighlight[dropId]+1,items.length-1)}
+  else if(e.key==='ArrowUp'){e.preventDefault();acHighlight[dropId]=Math.max(acHighlight[dropId]-1,-1)}
+  else if(e.key==='Enter'&&acHighlight[dropId]>=0){e.preventDefault();acSelect(dropId,acHighlight[dropId])}
+  else if(e.key==='Escape'){closeAllDropdowns()}
+  items.forEach((it,i)=>it.classList.toggle('highlighted',i===acHighlight[dropId]));
+}
+
+/* Close dropdowns on outside click */
+document.addEventListener('click',function(e){
+  if(!e.target.closest('.autocomplete-wrap')) closeAllDropdowns();
+});
+
+/* ===== ADD/EDIT MODAL ===== */
+function openAddModal(id=null){
+  editId=id;
+  document.getElementById('modalTitle').textContent=id?'Edit Driver Entry':'Add Driver Entry';
+  clearAutofillStyles();
+  const t=new Date().toISOString().split('T')[0];
+  const F=['f_date','f_pageno','f_name','f_contact','f_truck','f_dl','f_opening','f_settlement','f_netsalary','f_paid','f_outstanding','f_remarks'];
+  if(id){
+    const e=entries.find(x=>x.id===id);if(!e)return;
+    F.forEach(k=>document.getElementById(k).value='');
+    document.getElementById('f_date').value=e.date||t;
+    document.getElementById('f_pageno').value=e.pageno||'';
+    document.getElementById('f_name').value=e.name||'';
+    document.getElementById('f_contact').value=e.contact||'';
+    document.getElementById('f_truck').value=e.truck||'';
+    document.getElementById('f_dl').value=e.dl||'';
+    document.getElementById('f_opening').value=e.opening||'';
+    document.getElementById('f_settlement').value=e.settlement||'';
+    document.getElementById('f_netsalary').value=e.netsalary||'';
+    document.getElementById('f_paid').value=e.paid||'';
+    document.getElementById('f_outstanding').value=e.outstanding||'';
+    document.getElementById('f_remarks').value=e.remarks||'';
+  }else{
+    F.forEach(k=>document.getElementById(k).value='');
+    document.getElementById('f_date').value=t;
+  }
+  document.getElementById('addModal').classList.add('show');
+}
+
+function autoCalc(){
+  const o=parseFloat(document.getElementById('f_opening').value)||0;
+  const s=parseFloat(document.getElementById('f_settlement').value)||0;
+  const p=parseFloat(document.getElementById('f_paid').value)||0;
+  document.getElementById('f_netsalary').value=o+s||'';
+  document.getElementById('f_outstanding').value=(o+s-p)||'';
+}
+
+function saveEntry(){
+  const nm=document.getElementById('f_name').value.trim(),dt=document.getElementById('f_date').value;
+  if(!nm||!dt){showToast('Name and Date required!','error');return}
+  const e={id:editId||uid(),date:dt,pageno:document.getElementById('f_pageno').value,name:nm,contact:document.getElementById('f_contact').value,truck:document.getElementById('f_truck').value,dl:document.getElementById('f_dl').value,opening:document.getElementById('f_opening').value,settlement:document.getElementById('f_settlement').value,netsalary:document.getElementById('f_netsalary').value,paid:document.getElementById('f_paid').value,outstanding:document.getElementById('f_outstanding').value,remarks:document.getElementById('f_remarks').value};
+  if(editId){const i=entries.findIndex(x=>x.id===editId);entries[i]=e}else entries.push(e);
+  sv('mmrw_entries',entries);closeModal('addModal');renderDailyTable();showToast(editId?'Updated!':'Saved!');editId=null;
+}
+
 function deleteEntry(id){if(!confirm('Delete this entry?'))return;entries=entries.filter(x=>x.id!==id);sv('mmrw_entries',entries);renderDailyTable();showToast('Deleted.','error')}
 
 /* ===== DAILY TABLE ===== */
@@ -349,9 +627,8 @@ function renderMileageTable(){document.getElementById('mileageViewLabel').textCo
 function renderConsolidated(){const g={};entries.forEach(e=>{const k=e.name+'|'+e.truck;if(!g[k])g[k]={...e,days:0,opening:0,settlement:0,netsalary:0,paid:0,outstanding:0};g[k].days++;g[k].opening+=parseFloat(e.opening)||0;g[k].settlement+=parseFloat(e.settlement)||0;g[k].netsalary+=parseFloat(e.netsalary)||0;g[k].paid+=parseFloat(e.paid)||0;g[k].outstanding+=parseFloat(e.outstanding)||0});const rows=Object.values(g);const tN=rows.reduce((s,r)=>s+r.netsalary,0),tP=rows.reduce((s,r)=>s+r.paid,0),tO=rows.reduce((s,r)=>s+r.outstanding,0);document.getElementById('consolSummary').innerHTML=`<div class="sum-card blue"><div class="label">Total Net Salary</div><div class="val">${fmt(tN)}</div></div><div class="sum-card green"><div class="label">Total Paid</div><div class="val">${fmt(tP)}</div></div><div class="sum-card red"><div class="label">Total Outstanding</div><div class="val">${fmt(tO)}</div></div>`;const b=document.getElementById('consolBody');if(!rows.length){b.innerHTML='<tr><td colspan="14"><div class="empty-state"><i class="fas fa-inbox"></i><p>No data.</p></div></td></tr>';return}b.innerHTML=rows.map((r,i)=>`<tr><td><span class="badge badge-blue">${i+1}</span></td><td><strong>${r.name}</strong></td><td class="mono">${r.contact||'-'}</td><td><span class="badge badge-gold">${r.truck||'-'}</span></td><td class="mono" style="font-size:11px">${r.dl||'-'}</td><td>${r.pageno||'-'}</td><td><span class="badge badge-sky">${r.days}</span></td><td class="mono">${fmt(r.opening)}</td><td class="mono">${fmt(r.settlement)}</td><td class="mono"><strong>${fmt(r.netsalary)}</strong></td><td class="mono"><span class="badge badge-green">${fmt(r.paid)}</span></td><td class="mono"><span class="badge ${r.outstanding>0?'badge-red':'badge-green'}">${fmt(r.outstanding)}</span></td><td class="mono"><strong>${fmt(r.netsalary)}</strong></td><td style="font-size:11px;color:var(--text2)">${r.remarks||'-'}</td></tr>`).join('')}
 
 /* ====================================================================
-   SMART IMPORT ENGINE — Handles Daily Salary, Mileage, Consolidated
+   SMART IMPORT ENGINE
    ==================================================================== */
-
 function openImportModal(){resetImport();document.getElementById('importModal').classList.add('show')}
 function resetImport(){document.getElementById('importStep1').style.display='block';document.getElementById('importStep2').style.display='none';document.getElementById('btnBack').style.display='none';document.getElementById('btnImportAll').style.display='none';document.getElementById('btnImportSheet').style.display='none';document.getElementById('fileInput').value='';importWB=null;importSheets={};activeSheet=null}
 function handleDrop(e){e.preventDefault();document.getElementById('dropZone').style.borderColor='var(--border)';const f=e.dataTransfer.files[0];if(f)processFile(f)}
@@ -388,38 +665,21 @@ function processFile(file){
   reader.readAsArrayBuffer(file);
 }
 
-/* ===== FILE TYPE DETECTION ===== */
 function detectSheetType(raw){
-  /* Flatten first 10 rows for pattern scanning */
   const allText=raw.slice(0,10).map(r=>r.map(c=>String(c).trim()).join(' ')).join(' ').toLowerCase();
-
-  /* Mileage: look for "TRIP 1" anywhere in header area */
   if(/trip\s*1/.test(allText)&&/avg/.test(allText))return'mileage';
-
-  /* Consolidated: multiple SETTLEMENT or CREDIT columns with date suffixes */
   let settC=0,credC=0;
   for(let i=0;i<Math.min(raw.length,5);i++)raw[i].forEach(c=>{const s=String(c).trim().toLowerCase();if(/settlement\s+\d/.test(s))settC++;if(/credit\s+\d/.test(s))credC++});
   if(settC>=3||(settC+credC)>=8)return'consolidated';
-
-  /* Daily: has "driver salary details" header pattern */
   if(/driver salary details/.test(allText))return'daily';
-
-  /* Fallback heuristics */
   const firstFew=raw.slice(0,5).flat().map(c=>String(c).trim().toLowerCase());
   if(firstFew.some(c=>/net salary/.test(c))&&firstFew.some(c=>/paid/.test(c)))return'daily';
-
-  /* Extra mileage check: if we find actual TN truck numbers + numeric data in same rows */
   let tnRows=0;
-  for(let i=0;i<Math.min(raw.length,15);i++){
-    const rowStr=raw[i].map(c=>String(c).trim()).join(' ');
-    if(/TN\s*\d{2}\s*[A-Z]{1,2}\s*\d{3,4}/i.test(rowStr)&&/\d+\.\d+/.test(rowStr))tnRows++;
-  }
+  for(let i=0;i<Math.min(raw.length,15);i++){const rowStr=raw[i].map(c=>String(c).trim()).join(' ');if(/TN\s*\d{2}\s*[A-Z]{1,2}\s*\d{3,4}/i.test(rowStr)&&/\d+\.\d+/.test(rowStr))tnRows++}
   if(tnRows>=3)return'mileage';
-
   return'unknown';
 }
 
-/* ===== DAILY SALARY PARSER — Multi-section with date headers ===== */
 function parseDailySalary(raw){
   const results=[];let i=0;
   while(i<raw.length){
@@ -430,27 +690,13 @@ function parseDailySalary(raw){
       i++;if(i>=raw.length)break;
       const hdr=raw[i].map(c=>String(c).trim());const cm={};const sc=[];
       hdr.forEach((h,idx)=>{const hl=h.toLowerCase();
-        if(/^s\s*no$/i.test(hl))cm.sno=idx;
-        else if(/^name$/i.test(hl))cm.name=idx;
-        else if(/contact/i.test(hl))cm.contact=idx;
-        else if(/truck/i.test(hl))cm.truck=idx;
-        else if(/^dl/i.test(hl)||/driving/i.test(hl))cm.dl=idx;
-        else if(/page/i.test(hl))cm.pageno=idx;
-        else if(/opening/i.test(hl)||/note\s*cls/i.test(hl))cm.opening=idx;
-        else if(/online/i.test(hl))cm.onlinecase=idx;
-        else if(/^net salary/i.test(hl))cm.netsalary=idx;
-        else if(/settlement/i.test(hl))sc.push(idx);
-        else if(/paid/i.test(hl))cm.paid=idx;
-        else if(/outstanding/i.test(hl))cm.outstanding=idx;
-        else if(/remarks?/i.test(hl))cm.remarks=idx;
+        if(/^s\s*no$/i.test(hl))cm.sno=idx;else if(/^name$/i.test(hl))cm.name=idx;else if(/contact/i.test(hl))cm.contact=idx;else if(/truck/i.test(hl))cm.truck=idx;else if(/^dl/i.test(hl)||/driving/i.test(hl))cm.dl=idx;else if(/page/i.test(hl))cm.pageno=idx;else if(/opening/i.test(hl)||/note\s*cls/i.test(hl))cm.opening=idx;else if(/online/i.test(hl))cm.onlinecase=idx;else if(/^net salary/i.test(hl))cm.netsalary=idx;else if(/settlement/i.test(hl))sc.push(idx);else if(/paid/i.test(hl))cm.paid=idx;else if(/outstanding/i.test(hl))cm.outstanding=idx;else if(/remarks?/i.test(hl))cm.remarks=idx;
       });
       i++;
       while(i<raw.length){
         const dr=raw[i];const fv=String(dr[0]||'').trim();
         if(/^(total|prepared|verified|approved)$/i.test(fv)){i++;break}
-        if(fv===''||fv==='*'){
-          if(dr.map(c=>String(c).trim()).join(' ').match(/driver salary details/i))break;
-          i++;continue}
+        if(fv===''||fv==='*'){if(dr.map(c=>String(c).trim()).join(' ').match(/driver salary details/i))break;i++;continue}
         const sno=parseInt(fv);if(isNaN(sno)||sno<=0){i++;continue}
         const name=cleanStr(dr[cm.name]);if(!name){i++;continue}
         const opening=cm.opening!=null?parseNum(dr[cm.opening]):0;
@@ -468,76 +714,34 @@ function parseDailySalary(raw){
   return results;
 }
 
-/* ===== MILEAGE PARSER — Handles merged two-row headers + data-column detection ===== */
 function parseMileageData(raw){
-  /*
-   * Strategy:
-   * 1. Find the first actual data row by scanning for a TN truck number pattern
-   * 2. In that data row, locate the truck column by regex (not by header text)
-   * 3. Trip values are always the next 4 columns after the truck number
-   * This works regardless of merged headers, extra * columns, etc.
-   */
   let startIdx=-1;
-  for(let i=0;i<raw.length;i++){
-    const rowStr=raw[i].map(c=>String(c).trim()).join(' ');
-    if(/TN\s*\d{2}\s*[A-Z]{1,2}\s*\d{3,4}/i.test(rowStr)){startIdx=i;break}
-  }
+  for(let i=0;i<raw.length;i++){const rowStr=raw[i].map(c=>String(c).trim()).join(' ');if(/TN\s*\d{2}\s*[A-Z]{1,2}\s*\d{3,4}/i.test(rowStr)){startIdx=i;break}}
   if(startIdx<0)return[];
-
-  /* Locate truck column and trip start column from the first data row */
-  const sampleRow=raw[startIdx];
-  let truckIdx=-1,tripStartIdx=-1;
-  for(let i=0;i<sampleRow.length;i++){
-    const val=String(sampleRow[i]).trim();
-    if(/TN\s*\d{2}\s*[A-Z]{1,2}\s*\d{3,4}/i.test(val)){
-      truckIdx=i;
-      tripStartIdx=i+1;
-      break;
-    }
-  }
+  const sampleRow=raw[startIdx];let truckIdx=-1,tripStartIdx=-1;
+  for(let i=0;i<sampleRow.length;i++){const val=String(sampleRow[i]).trim();if(/TN\s*\d{2}\s*[A-Z]{1,2}\s*\d{3,4}/i.test(val)){truckIdx=i;tripStartIdx=i+1;break}}
   if(truckIdx<0)return[];
-
-  /* Parse all data rows from startIdx onward */
   const results=[];
   for(let i=startIdx;i<raw.length;i++){
-    const row=raw[i];
-    if(truckIdx>=row.length)continue;
-    const truck=cleanStr(row[truckIdx]);
-    if(!truck||!/TN\s*\d{2}/i.test(truck))continue;
-
+    const row=raw[i];if(truckIdx>=row.length)continue;
+    const truck=cleanStr(row[truckIdx]);if(!truck||!/TN\s*\d{2}/i.test(truck))continue;
     const t1=tripStartIdx<row.length?parseNum(row[tripStartIdx]):0;
     const t2=tripStartIdx+1<row.length?parseNum(row[tripStartIdx+1]):0;
     const t3=tripStartIdx+2<row.length?parseNum(row[tripStartIdx+2]):0;
     const avg=tripStartIdx+3<row.length?parseNum(row[tripStartIdx+3]):0;
-
-    /* Skip rows where all trip values and avg are zero */
     if(t1===0&&t2===0&&t3===0&&avg===0)continue;
-
     results.push({id:uid(),month:mileageMonth,truck,t1:t1||'',t2:t2||'',t3:t3||'',avg:avg||''});
   }
   return results;
 }
 
-/* ===== CONSOLIDATED PARSER — Wide format with many SETTLEMENT/CREDIT columns ===== */
 function parseConsolidatedData(raw){
   let hIdx=-1;
   for(let i=0;i<Math.min(raw.length,5);i++){const row=raw[i].map(c=>String(c).trim());if(row.some(c=>/^s\s*no$/i.test(c))&&row.some(c=>/^name$/i.test(c))){hIdx=i;break}}
   if(hIdx<0)return[];
   const hdr=raw[hIdx].map(c=>String(c).trim());const cm={};const sc=[],cc=[];
   hdr.forEach((h,idx)=>{const hl=h.toLowerCase();
-    if(/^s\s*no$/i.test(hl))cm.sno=idx;
-    else if(/^name$/i.test(hl))cm.name=idx;
-    else if(/contact/i.test(hl))cm.contact=idx;
-    else if(/truck/i.test(hl))cm.truck=idx;
-    else if(/^dl/i.test(hl))cm.dl=idx;
-    else if(/page/i.test(hl))cm.pageno=idx;
-    else if(/note\s*cls/i.test(hl)||/cls\s*salary/i.test(hl))cm.opening=idx;
-    else if(/online/i.test(hl))cm.onlinecase=idx;
-    else if(/^net salary/i.test(hl))cm.netsalary=idx;
-    else if(/settlement/i.test(hl))sc.push(idx);
-    else if(/credit/i.test(hl))cc.push(idx);
-    else if(/paid/i.test(hl))cm.paid=idx;
-    else if(/outstanding/i.test(hl))cm.outstanding=idx;
+    if(/^s\s*no$/i.test(hl))cm.sno=idx;else if(/^name$/i.test(hl))cm.name=idx;else if(/contact/i.test(hl))cm.contact=idx;else if(/truck/i.test(hl))cm.truck=idx;else if(/^dl/i.test(hl))cm.dl=idx;else if(/page/i.test(hl))cm.pageno=idx;else if(/note\s*cls/i.test(hl)||/cls\s*salary/i.test(hl))cm.opening=idx;else if(/online/i.test(hl))cm.onlinecase=idx;else if(/^net salary/i.test(hl))cm.netsalary=idx;else if(/settlement/i.test(hl))sc.push(idx);else if(/credit/i.test(hl))cc.push(idx);else if(/paid/i.test(hl))cm.paid=idx;else if(/outstanding/i.test(hl))cm.outstanding=idx;
   });
   const results=[];
   for(let i=hIdx+1;i<raw.length;i++){
@@ -556,59 +760,36 @@ function parseConsolidatedData(raw){
   return results;
 }
 
-/* ===== ANALYSIS BUILDERS (for UI display) ===== */
 function buildDailyAnalysis(raw,parsed){
   const dates=[];raw.forEach(r=>{const m=r.map(c=>String(c).trim()).join(' ').match(/driver salary details\s*[-–—]\s*(\d{1,2}[.\-\/]\d{1,2}[.\-\/]\d{2,4})/i);if(m&&!dates.includes(m[1]))dates.push(m[1])});
-  return{type:'daily',sections:dates.length,rows:parsed.length,details:`Found ${dates.length} date-sections with ${parsed.length} total driver entries. Each section is parsed separately with its own date and column layout.`}
+  return{type:'daily',sections:dates.length,rows:parsed.length,details:`Found ${dates.length} date-sections with ${parsed.length} total driver entries.`}
 }
-function buildMileageAnalysis(raw,parsed){return{type:'mileage',rows:parsed.length,details:`Found ${parsed.length} truck mileage records by detecting TN truck numbers in data rows (handles merged headers automatically). Month defaults to currently selected: ${mileageMonth}. You can change it after import.`}}
+function buildMileageAnalysis(raw,parsed){return{type:'mileage',rows:parsed.length,details:`Found ${parsed.length} truck mileage records. Month defaults to: ${mileageMonth}.`}}
 function buildConsolidatedAnalysis(raw,parsed){
   let sc=0,cc=0;const hdr=raw.slice(0,5).flat();
   hdr.forEach(c=>{const s=String(c).trim().toLowerCase();if(/settlement\s+\d/.test(s))sc++;if(/credit\s+\d/.test(s))cc++});
-  return{type:'consolidated',rows:parsed.length,settCols:sc,credCols:cc,details:`Found ${parsed.length} driver records across ${sc} SETTLEMENT columns (summed) and ${cc} CREDIT columns (summed as Paid). NOTE CLS SALARY mapped to Opening, ONLINE CASE added to Paid.`}
+  return{type:'consolidated',rows:parsed.length,settCols:sc,credCols:cc,details:`Found ${parsed.length} driver records across ${sc} SETTLEMENT columns and ${cc} CREDIT columns.`}
 }
 
-/* ===== SHOW SHEET UI ===== */
 function selectSheet(name){activeSheet=name;document.querySelectorAll('.sheet-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.sheet-tab').forEach(t=>{if(t.textContent.includes(name))t.classList.add('active')});showSheetUI(name)}
 
 function showSheetUI(name){
   const sh=importSheets[name];if(!sh)return;const{type,parsed,analysis,raw}=sh;
   const typeLabel=type==='daily'?'Daily Salary':type==='mileage'?'Mileage':type==='consolidated'?'Consolidated':'Unknown';
   const typeClass=type==='daily'?'daily':type==='mileage'?'mileage':type==='consolidated'?'consolidated':'unknown';
-
   let statsHTML=`<div class="import-stat"><div class="isl">Detected Type</div><div class="isv" style="font-size:13px"><span class="type-badge ${typeClass}"><i class="fas ${type==='daily'?'fa-calendar-day':type==='mileage'?'fa-route':'fa-layer-group'}"></i> ${typeLabel}</span></div></div>`;
   statsHTML+=`<div class="import-stat blue"><div class="isl">Records Found</div><div class="isv">${parsed.length}</div></div>`;
   if(type==='daily'){statsHTML+=`<div class="import-stat green"><div class="isl">Date Sections</div><div class="isv">${analysis.sections}</div></div>`;statsHTML+=`<div class="import-stat sky"><div class="isl">Target Module</div><div class="isv" style="font-size:12px">Daily Salary</div></div>`}
   if(type==='mileage'){statsHTML+=`<div class="import-stat orange"><div class="isl">Target Month</div><div class="isv" style="font-size:12px">${mileageMonth}</div></div>`;statsHTML+=`<div class="import-stat sky"><div class="isl">Target Module</div><div class="isv" style="font-size:12px">Mileage</div></div>`}
-  if(type==='consolidated'){statsHTML+=`<div class="import-stat orange"><div class="isl">SETTLEMENT Cols</div><div class="isv">${analysis.settCols} <span style="font-size:9px;font-weight:400;color:var(--text3)">summed</span></div></div>`;statsHTML+=`<div class="import-stat red"><div class="isl">CREDIT Cols</div><div class="isv">${analysis.credCols} <span style="font-size:9px;font-weight:400;color:var(--text3)">to Paid</span></div></div>`;statsHTML+=`<div class="import-stat sky"><div class="isl">Target Module</div><div class="isv" style="font-size:12px">Daily Salary</div></div>`}
+  if(type==='consolidated'){statsHTML+=`<div class="import-stat orange"><div class="isl">SETTLEMENT Cols</div><div class="isv">${analysis.settCols}</div></div>`;statsHTML+=`<div class="import-stat red"><div class="isl">CREDIT Cols</div><div class="isv">${analysis.credCols}</div></div>`;statsHTML+=`<div class="import-stat sky"><div class="isl">Target Module</div><div class="isv" style="font-size:12px">Daily Salary</div></div>`}
   document.getElementById('importStats').innerHTML=statsHTML;
-
   document.getElementById('mappingInfo').innerHTML=`<i class="fas fa-info-circle" style="color:var(--sky);margin-right:4px"></i> ${analysis.details}`;
-
-  /* Column mapping grid */
   let mapHTML='';
-  if(type==='daily'){
-    [['S.NO','sno'],['NAME','Driver Name'],['CONTACT NO','Contact'],['TRUCK NO','Truck'],['DL NO','DL'],['PAGE NO','Page No'],['OPENING BALANCE','Opening Bal'],['SETTLEMENT dd.mm.yy','Settlement (sum)'],['NET SALARY','Net Salary'],['PAID SALARY','Paid Salary'],['OUTSTANDING SALARY','Outstanding'],['REMARKS','Remarks']].forEach(([src,dest])=>{
-      const cls=dest.includes('sum')?'summed':'matched';
-      mapHTML+=`<div class="col-map-row ${cls}"><span class="col-map-src">${src}</span><span class="col-map-arrow">→</span><span class="col-map-dest">${dest}</span></div>`;
-    });
-  }else if(type==='mileage'){
-    [['TN XX XXXX (detected)','Truck No'],['Next col +1','Trip 1 km/l'],['Next col +2','Trip 2 km/l'],['Next col +3','Trip 3 km/l'],['Next col +4','Average km/l']].forEach(([src,dest])=>{
-      mapHTML+=`<div class="col-map-row matched"><span class="col-map-src">${src}</span><span class="col-map-arrow">→</span><span class="col-map-dest">${dest}</span></div>`;
-    });
-    mapHTML+=`<div class="col-map-row skipped"><span class="col-map-src">*, -, blank values</span><span class="col-map-arrow">→</span><span class="col-map-dest">Treated as 0</span></div>`;
-    mapHTML+=`<div class="col-map-row skipped"><span class="col-map-src">(auto-assigned)</span><span class="col-map-arrow">→</span><span class="col-map-dest">Month: ${mileageMonth}</span></div>`;
-  }else if(type==='consolidated'){
-    [['S.NO','sno'],['NAME','Driver Name'],['CONTACT NO','Contact'],['TRUCK NO','Truck'],['DL NO','DL'],['PAGE NO','Page No'],['NOTE CLS SALARY','Opening Bal'],['ONLINE CASE MH/TN','added to Paid'],['SETTLEMENT dd.mm.yy','Settlement (sum)'],['CREDIT dd.mm.yy','Credit (sum to Paid)'],['NET SALARY OUTSTANDING','Outstanding']].forEach(([src,dest])=>{
-      let cls='matched';if(dest.includes('sum')||dest.includes('Credit')||dest.includes('added'))cls='summed';
-      mapHTML+=`<div class="col-map-row ${cls}"><span class="col-map-src">${src}</span><span class="col-map-arrow">→</span><span class="col-map-dest">${dest}</span></div>`;
-    });
-  }else{
-    mapHTML=`<div class="col-map-row skipped"><span class="col-map-src">Could not detect</span><span class="col-map-arrow">→</span><span class="col-map-dest">Unknown format</span></div>`;
-  }
+  if(type==='daily'){[['S.NO','sno'],['NAME','Driver Name'],['CONTACT NO','Contact'],['TRUCK NO','Truck'],['DL NO','DL'],['PAGE NO','Page No'],['OPENING BALANCE','Opening Bal'],['SETTLEMENT dd.mm.yy','Settlement (sum)'],['NET SALARY','Net Salary'],['PAID SALARY','Paid Salary'],['OUTSTANDING SALARY','Outstanding'],['REMARKS','Remarks']].forEach(([src,dest])=>{const cls=dest.includes('sum')?'summed':'matched';mapHTML+=`<div class="col-map-row ${cls}"><span class="col-map-src">${src}</span><span class="col-map-arrow">→</span><span class="col-map-dest">${dest}</span></div>`})}
+  else if(type==='mileage'){[['TN XX XXXX (detected)','Truck No'],['Next col +1','Trip 1 km/l'],['Next col +2','Trip 2 km/l'],['Next col +3','Trip 3 km/l'],['Next col +4','Average km/l']].forEach(([src,dest])=>{mapHTML+=`<div class="col-map-row matched"><span class="col-map-src">${src}</span><span class="col-map-arrow">→</span><span class="col-map-dest">${dest}</span></div>`});mapHTML+=`<div class="col-map-row skipped"><span class="col-map-src">*, -, blank</span><span class="col-map-arrow">→</span><span class="col-map-dest">Treated as 0</span></div>`}
+  else if(type==='consolidated'){[['S.NO','sno'],['NAME','Driver Name'],['CONTACT NO','Contact'],['TRUCK NO','Truck'],['DL NO','DL'],['PAGE NO','Page No'],['NOTE CLS SALARY','Opening Bal'],['ONLINE CASE MH/TN','added to Paid'],['SETTLEMENT dd.mm.yy','Settlement (sum)'],['CREDIT dd.mm.yy','Credit (sum to Paid)'],['NET SALARY OUTSTANDING','Outstanding']].forEach(([src,dest])=>{let cls='matched';if(dest.includes('sum')||dest.includes('Credit')||dest.includes('added'))cls='summed';mapHTML+=`<div class="col-map-row ${cls}"><span class="col-map-src">${src}</span><span class="col-map-arrow">→</span><span class="col-map-dest">${dest}</span></div>`})}
+  else{mapHTML=`<div class="col-map-row skipped"><span class="col-map-src">Could not detect</span><span class="col-map-arrow">→</span><span class="col-map-dest">Unknown format</span></div>`}
   document.getElementById('mappingGrid').innerHTML=mapHTML;
-
-  /* Preview table */
   const prev=parsed.slice(0,5);
   if(type==='daily'||type==='consolidated'){
     let pt=`<thead><tr><th>Name</th><th>Contact</th><th>Truck</th><th>DL</th><th>Opening</th><th>Settlement</th><th>Net Salary</th><th>Paid</th><th>Outstanding</th>${type==='daily'?'<th>Date</th>':''}<th>Remarks</th></tr></thead><tbody>`;
@@ -618,32 +799,20 @@ function showSheetUI(name){
     let pt=`<thead><tr><th>Truck No</th><th>Month</th><th>Trip 1</th><th>Trip 2</th><th>Trip 3</th><th>Average</th></tr></thead><tbody>`;
     prev.forEach(r=>{pt+=`<tr><td><strong>${r.truck}</strong></td><td>${r.month}</td><td>${r.t1||'-'}</td><td>${r.t2||'-'}</td><td>${r.t3||'-'}</td><td><strong>${r.avg||'-'}</strong></td></tr>`});
     pt+='</tbody>';document.getElementById('previewTable').innerHTML=pt;
-  }else{
-    document.getElementById('previewTable').innerHTML='<tbody><tr><td style="padding:20px;text-align:center;color:var(--text3)">No preview available</td></tr></tbody>';
-  }
+  }else{document.getElementById('previewTable').innerHTML='<tbody><tr><td style="padding:20px;text-align:center;color:var(--text3)">No preview available</td></tr></tbody>'}
 }
 
-/* ===== IMPORT EXECUTION ===== */
 function importCurrentSheet(){
   if(!activeSheet)return;
   const sh=importSheets[activeSheet];if(!sh||!sh.parsed.length){showToast('No valid rows to import!','error');return}
-  if(sh.type==='mileage'){
-    mileageData=mileageData.concat(sh.parsed);sv('mmrw_mileage',mileageData);
-    showToast(`${sh.parsed.length} mileage records imported from "${activeSheet}"!`);
-  }else{
-    entries=entries.concat(sh.parsed);sv('mmrw_entries',entries);
-    showToast(`${sh.parsed.length} salary records imported from "${activeSheet}"!`);
-  }
+  if(sh.type==='mileage'){mileageData=mileageData.concat(sh.parsed);sv('mmrw_mileage',mileageData);showToast(`${sh.parsed.length} mileage records imported!`)}
+  else{entries=entries.concat(sh.parsed);sv('mmrw_entries',entries);showToast(`${sh.parsed.length} salary records imported!`)}
   closeModal('importModal');resetImport();renderAll();
 }
 
 function importAllSheets(){
   let dailyC=0,mileC=0;
-  Object.keys(importSheets).forEach(sn=>{
-    const sh=importSheets[sn];if(!sh.parsed.length)return;
-    if(sh.type==='mileage'){mileageData=mileageData.concat(sh.parsed);mileC+=sh.parsed.length}
-    else{entries=entries.concat(sh.parsed);dailyC+=sh.parsed.length}
-  });
+  Object.keys(importSheets).forEach(sn=>{const sh=importSheets[sn];if(!sh.parsed.length)return;if(sh.type==='mileage'){mileageData=mileageData.concat(sh.parsed);mileC+=sh.parsed.length}else{entries=entries.concat(sh.parsed);dailyC+=sh.parsed.length}});
   sv('mmrw_entries',entries);sv('mmrw_mileage',mileageData);
   closeModal('importModal');resetImport();renderAll();
   let msg='';if(dailyC)msg+=`${dailyC} salary records`;if(dailyC&&mileC)msg+=' + ';if(mileC)msg+=`${mileC} mileage records`;
@@ -653,38 +822,14 @@ function importAllSheets(){
 function renderAll(){renderHome();renderDailyTable();renderMonthGrid();renderMonthTable();renderMileageMonthGrid();renderMileageTable();renderConsolidated()}
 
 /* ====================================================================
-   COLORFUL EXCEL EXPORT — Using ExcelJS for full styling
+   COLORFUL EXCEL EXPORT
    ==================================================================== */
 async function exportSection(type){
   const wb=new ExcelJS.Workbook();wb.creator='MMROADWAYS - Vicky';wb.created=new Date();
-  if(type==='daily'||type==='all'){
-    addColorSheet(wb,'Daily Salary',
-      ['S.No','Date','Name','Contact No','Truck No','DL No','Page No','Opening Bal','Settlement','Net Salary','Paid Salary','Outstanding','Remarks'],
-      entries.map((e,i)=>[i+1,e.date||'',e.name,e.contact||'',e.truck||'',e.dl||'',e.pageno||'',+(parseFloat(e.opening)||0),+(parseFloat(e.settlement)||0),+(parseFloat(e.netsalary)||0),+(parseFloat(e.paid)||0),+(parseFloat(e.outstanding)||0),e.remarks||'']),
-      {nameCol:2,truckCol:4,outCol:11,netCol:9,paidCol:10});
-  }
-  if(type==='monthwise'||type==='all'){
-    const f=entries.filter(e=>{if(!e.date)return false;const d=new Date(e.date);return d.toLocaleString('en-GB',{month:'short'}).slice(0,3)+'-'+String(d.getFullYear()).slice(-2)===selectedMonth});
-    addColorSheet(wb,'Month '+selectedMonth,
-      ['S.No','Name','Contact No','Truck No','DL No','Page No','Net Salary','Outstanding'],
-      f.map((e,i)=>[i+1,e.name,e.contact||'',e.truck||'',e.dl||'',e.pageno||'',+(parseFloat(e.netsalary)||0),+(parseFloat(e.outstanding)||0)]),
-      {nameCol:1,truckCol:3,outCol:7,netCol:6});
-  }
-  if(type==='mileage'||type==='all'){
-    const f=mileageData.filter(m=>m.month===mileageMonth);
-    addColorSheet(wb,'Mileage '+mileageMonth,
-      ['S.No','Truck No','Month','Trip 1 (km/l)','Trip 2 (km/l)','Trip 3 (km/l)','Average (km/l)'],
-      f.map((m,i)=>[i+1,m.truck,m.month,+(parseFloat(m.t1)||0),+(parseFloat(m.t2)||0),+(parseFloat(m.t3)||0),+(parseFloat(m.avg)||0)]),
-      {truckCol:1});
-  }
-  if(type==='consolidated'||type==='all'){
-    const g={};entries.forEach(e=>{const k=e.name+'|'+e.truck;if(!g[k])g[k]={...e,days:0,opening:0,settlement:0,netsalary:0,paid:0,outstanding:0};g[k].days++;g[k].opening+=parseFloat(e.opening)||0;g[k].settlement+=parseFloat(e.settlement)||0;g[k].netsalary+=parseFloat(e.netsalary)||0;g[k].paid+=parseFloat(e.paid)||0;g[k].outstanding+=parseFloat(e.outstanding)||0});
-    const rows=Object.values(g);
-    addColorSheet(wb,'Consolidated Salary',
-      ['S.No','Name','Contact No','Truck No','DL No','Page No','Days','Opening Bal','Settlement','Net Salary','Paid Salary','Outstanding','CLS Salary','Notes'],
-      rows.map((r,i)=>[i+1,r.name,r.contact||'',r.truck||'',r.dl||'',r.pageno||'',r.days,+r.opening.toFixed(2),+r.settlement.toFixed(2),+r.netsalary.toFixed(2),+r.paid.toFixed(2),+r.outstanding.toFixed(2),+r.netsalary.toFixed(2),r.remarks||'']),
-      {nameCol:1,truckCol:3,outCol:11,netCol:9,paidCol:10,daysCol:6,hasTotal:true,totalRow:rows});
-  }
+  if(type==='daily'||type==='all'){addColorSheet(wb,'Daily Salary',['S.No','Date','Name','Contact No','Truck No','DL No','Page No','Opening Bal','Settlement','Net Salary','Paid Salary','Outstanding','Remarks'],entries.map((e,i)=>[i+1,e.date||'',e.name,e.contact||'',e.truck||'',e.dl||'',e.pageno||'',+(parseFloat(e.opening)||0),+(parseFloat(e.settlement)||0),+(parseFloat(e.netsalary)||0),+(parseFloat(e.paid)||0),+(parseFloat(e.outstanding)||0),e.remarks||'']),{nameCol:2,truckCol:4,outCol:11,netCol:9,paidCol:10})}
+  if(type==='monthwise'||type==='all'){const f=entries.filter(e=>{if(!e.date)return false;const d=new Date(e.date);return d.toLocaleString('en-GB',{month:'short'}).slice(0,3)+'-'+String(d.getFullYear()).slice(-2)===selectedMonth});addColorSheet(wb,'Month '+selectedMonth,['S.No','Name','Contact No','Truck No','DL No','Page No','Net Salary','Outstanding'],f.map((e,i)=>[i+1,e.name,e.contact||'',e.truck||'',e.dl||'',e.pageno||'',+(parseFloat(e.netsalary)||0),+(parseFloat(e.outstanding)||0)]),{nameCol:1,truckCol:3,outCol:7,netCol:6})}
+  if(type==='mileage'||type==='all'){const f=mileageData.filter(m=>m.month===mileageMonth);addColorSheet(wb,'Mileage '+mileageMonth,['S.No','Truck No','Month','Trip 1 (km/l)','Trip 2 (km/l)','Trip 3 (km/l)','Average (km/l)'],f.map((m,i)=>[i+1,m.truck,m.month,+(parseFloat(m.t1)||0),+(parseFloat(m.t2)||0),+(parseFloat(m.t3)||0),+(parseFloat(m.avg)||0)]),{truckCol:1})}
+  if(type==='consolidated'||type==='all'){const g={};entries.forEach(e=>{const k=e.name+'|'+e.truck;if(!g[k])g[k]={...e,days:0,opening:0,settlement:0,netsalary:0,paid:0,outstanding:0};g[k].days++;g[k].opening+=parseFloat(e.opening)||0;g[k].settlement+=parseFloat(e.settlement)||0;g[k].netsalary+=parseFloat(e.netsalary)||0;g[k].paid+=parseFloat(e.paid)||0;g[k].outstanding+=parseFloat(e.outstanding)||0});const rows=Object.values(g);addColorSheet(wb,'Consolidated Salary',['S.No','Name','Contact No','Truck No','DL No','Page No','Days','Opening Bal','Settlement','Net Salary','Paid Salary','Outstanding','CLS Salary','Notes'],rows.map((r,i)=>[i+1,r.name,r.contact||'',r.truck||'',r.dl||'',r.pageno||'',r.days,+r.opening.toFixed(2),+r.settlement.toFixed(2),+r.netsalary.toFixed(2),+r.paid.toFixed(2),+r.outstanding.toFixed(2),+r.netsalary.toFixed(2),r.remarks||'']),{nameCol:1,truckCol:3,outCol:11,netCol:9,paidCol:10,daysCol:6,hasTotal:true,totalRow:rows})}
   const buf=await wb.xlsx.writeBuffer();
   const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
@@ -698,14 +843,11 @@ function addColorSheet(wb,sheetName,headers,rows,opts={}){
   const nc=opts.nameCol||-1,truckCol=opts.truckCol||-1,outCol=opts.outCol||-1,netCol=opts.netCol||-1,paidCol=opts.paidCol||-1,daysCol=opts.daysCol||-1;
   ws.mergeCells(1,1,1,headers.length);
   const tCell=ws.getCell(1,1);tCell.value='MMROADWAYS — '+sheetName;
-  tCell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0a2463'}};
-  tCell.font={name:'Calibri',size:14,bold:true,color:{argb:'FFFFFFFF'}};
-  tCell.alignment={horizontal:'center',vertical:'middle'};ws.getRow(1).height=34;
+  tCell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0a2463'}};tCell.font={name:'Calibri',size:14,bold:true,color:{argb:'FFFFFFFF'}};tCell.alignment={horizontal:'center',vertical:'middle'};ws.getRow(1).height=34;
   for(let c=2;c<=headers.length;c++){ws.getCell(1,c).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0a2463'}}}
   ws.mergeCells(2,1,2,headers.length);
   const sCell=ws.getCell(2,1);sCell.value='Admin: Ragu Anna  |  Developed by Vicky  |  '+new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'});
-  sCell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF1e4db7'}};
-  sCell.font={name:'Calibri',size:10,color:{argb:'FFC8D6F0'}};sCell.alignment={horizontal:'center',vertical:'middle'};ws.getRow(2).height=22;
+  sCell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF1e4db7'}};sCell.font={name:'Calibri',size:10,color:{argb:'FFC8D6F0'}};sCell.alignment={horizontal:'center',vertical:'middle'};ws.getRow(2).height=22;
   for(let c=2;c<=headers.length;c++){ws.getCell(2,c).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF1e4db7'}}}
   const hRow=ws.addRow(headers);hRow.height=26;
   hRow.eachCell(cell=>{cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0a2463'}};cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FFFFFFFF'}};cell.alignment={horizontal:'center',vertical:'middle',wrapText:true};cell.border={top:{style:'thin',color:{argb:'FF3355AA'}},bottom:{style:'medium',color:{argb:'FF0a2463'}},left:{style:'thin',color:{argb:'FF3355AA'}},right:{style:'thin',color:{argb:'FF3355AA'}}}});
@@ -719,8 +861,7 @@ function addColorSheet(wb,sheetName,headers,rows,opts={}){
       if(ci===daysCol)bg=even?'FFE8F8FF':'FFF2FCFF';
       cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:bg}};
       let fontColor='FF0a1628',bold=false;
-      if(ci===nc){bold=true;fontColor='FF0a2463'}
-      if(ci===outCol){bold=true;fontColor=(parseFloat(row[ci])||0)>0?'FFD42020':'FF078A52'}
+      if(ci===nc){bold=true;fontColor='FF0a2463'}if(ci===outCol){bold=true;fontColor=(parseFloat(row[ci])||0)>0?'FFD42020':'FF078A52'}
       if(ci===netCol)bold=true;if(ci===truckCol){fontColor='FFB85C00';bold=true}
       cell.font={name:'Calibri',size:10,bold,color:{argb:fontColor}};cell.alignment={vertical:'middle'};
       cell.border={top:{style:'hair',color:{argb:'FFDDE3F0'}},bottom:{style:'hair',color:{argb:'FFDDE3F0'}},left:{style:'hair',color:{argb:'FFDDE3F0'}},right:{style:'hair',color:{argb:'FFDDE3F0'}}};
@@ -730,12 +871,7 @@ function addColorSheet(wb,sheetName,headers,rows,opts={}){
     const tr=opts.totalRow;const tNet=tr.reduce((s,r)=>s+r.netsalary,0),tPaid=tr.reduce((s,r)=>s+r.paid,0),tOut=tr.reduce((s,r)=>s+r.outstanding,0);
     const td=new Array(headers.length).fill('');td[0]='TOTAL';td[netCol]=+tNet.toFixed(2);td[paidCol]=+tPaid.toFixed(2);td[outCol]=+tOut.toFixed(2);
     const tRow=ws.addRow(td);tRow.height=28;
-    tRow.eachCell((cell,ci)=>{
-      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0a2463'}};let fColor='FFFFFFFF';let bold=true;
-      if(ci===outCol+1)fColor=tOut>0?'FFFF6B6B':'FF6BFFB0';if(ci===paidCol+1)fColor='FF6BFFB0';if(ci===netCol+1)fColor='FF48CAE4';
-      cell.font={name:'Calibri',size:11,bold,color:{argb:fColor}};cell.alignment={horizontal:'center',vertical:'middle'};
-      cell.border={top:{style:'medium',color:{argb:'FF0a2463'}},bottom:{style:'medium',color:{argb:'FF0a2463'}},left:{style:'thin',color:{argb:'FF1e4db7'}},right:{style:'thin',color:{argb:'FF1e4db7'}}};
-    });
+    tRow.eachCell((cell,ci)=>{cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0a2463'}};let fColor='FFFFFFFF';let bold=true;if(ci===outCol+1)fColor=tOut>0?'FFFF6B6B':'FF6BFFB0';if(ci===paidCol+1)fColor='FF6BFFB0';if(ci===netCol+1)fColor='FF48CAE4';cell.font={name:'Calibri',size:11,bold,color:{argb:fColor}};cell.alignment={horizontal:'center',vertical:'middle'};cell.border={top:{style:'medium',color:{argb:'FF0a2463'}},bottom:{style:'medium',color:{argb:'FF0a2463'}},left:{style:'thin',color:{argb:'FF1e4db7'}},right:{style:'thin',color:{argb:'FF1e4db7'}}}});
   }
   ws.columns=headers.map((h,i)=>{if(i===nc)return{width:22};if(i===truckCol)return{width:18};if(i===outCol)return{width:16};return{width:Math.max(String(h).length+3,13)}});
   ws.views=[{state:'frozen',ySplit:3,xSplit:0,topLeftCell:'A4'}];
