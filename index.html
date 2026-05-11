@@ -9,7 +9,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <style>
-:root{--primary:#0a2463;--primary2:#1e4db7;--accent:#e84855;--accent2:#ff6b35;--gold:#f4a261;--emerald:#06d6a0;--sky:#48cae4;--bg:#f0f2f8;--surface:#fff;--surface2:#f7f9ff;--border:#dde3f0;--text:#0a1628;--text2:#4a5578;--text3:#8e98b5;--header-h:62px;--sidebar-w:230px;--radius:12px;--radius-sm:8px;--shadow:0 2px 16px rgba(10,36,99,.08);--shadow-md:0 6px 32px rgba(10,36,99,.14)}
+:root{--primary:#0a2463;--primary2:#1e4db7;--accent:#e84855;--accent2:#ff6b35;--gold:#f4a261;--emerald:#06d6a0;--sky:#48cae4;--purple:#7b2ff7;--purple2:#a855f7;--bg:#f0f2f8;--surface:#fff;--surface2:#f7f9ff;--border:#dde3f0;--text:#0a1628;--text2:#4a5578;--text3:#8e98b5;--header-h:62px;--sidebar-w:230px;--radius:12px;--radius-sm:8px;--shadow:0 2px 16px rgba(10,36,99,.08);--shadow-md:0 6px 32px rgba(10,36,99,.14)}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 .topbar{position:fixed;top:0;left:0;right:0;z-index:100;height:var(--header-h);background:var(--primary);display:flex;align-items:center;padding:0 24px;gap:14px;box-shadow:0 2px 20px rgba(10,36,99,.35)}
@@ -34,6 +34,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .nav-btn.export-btn:hover{background:rgba(6,214,160,.1);border-color:var(--emerald)}
 .nav-btn.import-btn{color:var(--sky);border:1.5px solid rgba(72,202,228,.25);background:rgba(72,202,228,.04)}
 .nav-btn.import-btn:hover{background:rgba(72,202,228,.1);border-color:var(--sky)}
+.nav-btn.settle-btn{color:var(--purple2);border:1.5px solid rgba(123,47,247,.22);background:rgba(123,47,247,.04)}
+.nav-btn.settle-btn:hover{background:rgba(123,47,247,.1);border-color:var(--purple2)}
+.nav-btn.settle-btn.active{background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;box-shadow:0 4px 12px rgba(123,47,247,.3)}
 .main-content{margin-left:var(--sidebar-w);margin-top:var(--header-h);padding:24px;min-height:calc(100vh - var(--header-h))}
 .page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:12px}
 .page-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--primary);letter-spacing:-.3px}
@@ -46,6 +49,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .stat-card.green::after{background:linear-gradient(90deg,#06d6a0,#07a37a)}
 .stat-card.orange::after{background:linear-gradient(90deg,var(--gold),var(--accent2))}
 .stat-card.sky::after{background:linear-gradient(90deg,var(--sky),#0096c7)}
+.stat-card.purple::after{background:linear-gradient(90deg,var(--purple),var(--purple2))}
 .stat-label{font-size:10.5px;font-weight:700;color:var(--text3);letter-spacing:.6px;text-transform:uppercase;margin-bottom:6px}
 .stat-val{font-family:'Syne',sans-serif;font-size:21px;font-weight:800;color:var(--text);letter-spacing:-.5px}
 .card-box{background:var(--surface);border-radius:var(--radius);border:1.5px solid var(--border);box-shadow:var(--shadow);padding:20px;margin-bottom:18px}
@@ -60,9 +64,13 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .btn-danger:hover{transform:translateY(-1px)}
 .btn-ghost{background:transparent;color:var(--text2);border:1.5px solid var(--border)}
 .btn-ghost:hover{border-color:var(--primary2);color:var(--primary2);background:rgba(30,77,183,.05)}
+.btn-purple{background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;box-shadow:0 3px 10px rgba(123,47,247,.25)}
+.btn-purple:hover{transform:translateY(-1px);box-shadow:0 5px 16px rgba(123,47,247,.4)}
 .btn-icon{background:none;border:none;cursor:pointer;padding:5px 7px;border-radius:6px;color:var(--text2);font-size:13px;transition:all .1s}
 .btn-icon:hover{background:rgba(30,77,183,.08);color:var(--primary2)}
 .btn-icon.del:hover{background:rgba(232,72,85,.08);color:var(--accent)}
+.btn-icon.save-map{color:var(--purple2)}
+.btn-icon.save-map:hover{background:rgba(123,47,247,.1);color:var(--purple)}
 .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:13px}
 .form-group{display:flex;flex-direction:column;gap:5px}
 .form-label{font-size:11px;font-weight:700;color:var(--text2);letter-spacing:.3px;text-transform:uppercase}
@@ -87,6 +95,7 @@ tbody td.mono{font-family:'JetBrains Mono',monospace;font-size:11.5px}
 .badge-green{background:rgba(6,214,160,.12);color:#07a37a}
 .badge-gold{background:rgba(244,162,97,.15);color:#c47a2e}
 .badge-sky{background:rgba(72,202,228,.15);color:#0096c7}
+.badge-purple{background:rgba(123,47,247,.12);color:var(--purple2)}
 .section{display:none}.section.active{display:block}
 .month-grid{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px}
 .month-chip{padding:6px 15px;border-radius:20px;font-size:12px;font-weight:600;background:var(--surface2);border:1.5px solid var(--border);cursor:pointer;transition:all .15s;color:var(--text2);font-family:'Inter',sans-serif}
@@ -103,6 +112,7 @@ tbody td.mono{font-family:'JetBrains Mono',monospace;font-size:11.5px}
 .toast.success{background:var(--emerald);color:#fff}
 .toast.error{background:var(--accent);color:#fff}
 .toast.info{background:var(--primary2);color:#fff}
+.toast.purple{background:var(--purple);color:#fff}
 @keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
 .consol-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
 .sum-card{border-radius:10px;padding:14px 16px}
@@ -111,6 +121,7 @@ tbody td.mono{font-family:'JetBrains Mono',monospace;font-size:11.5px}
 .sum-card.blue{background:linear-gradient(135deg,var(--primary),var(--primary2))}
 .sum-card.green{background:linear-gradient(135deg,#06d6a0,#07a37a)}
 .sum-card.red{background:linear-gradient(135deg,var(--accent),var(--accent2))}
+.sum-card.purple{background:linear-gradient(135deg,var(--purple),var(--purple2))}
 .module-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:6px}
 .module-card{background:var(--surface);border-radius:var(--radius);border:1.5px solid var(--border);padding:20px;box-shadow:var(--shadow);cursor:pointer;transition:all .2s;overflow:hidden;position:relative}
 .module-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
@@ -124,6 +135,45 @@ tbody td.mono{font-family:'JetBrains Mono',monospace;font-size:11.5px}
 .info-banner{background:rgba(72,202,228,.08);border:1.5px solid rgba(72,202,228,.25);border-radius:var(--radius-sm);padding:10px 14px;font-size:12px;color:var(--primary2);margin-bottom:14px;display:flex;align-items:flex-start;gap:8px}
 .info-banner i{margin-top:1px;flex-shrink:0;color:var(--sky)}
 .footer{margin-left:var(--sidebar-w);padding:14px 24px;font-size:11px;color:var(--text3);border-top:1px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:space-between;font-family:'JetBrains Mono',monospace}
+
+/* ===== DAILY SETTLEMENT STYLES ===== */
+.settlement-header-strip{background:linear-gradient(135deg,var(--purple),var(--purple2));border-radius:var(--radius);padding:18px 22px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.settlement-header-strip .shs-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:#fff}
+.settlement-header-strip .shs-sub{font-size:12px;color:rgba(255,255,255,.7);margin-top:2px}
+.settlement-date-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-bottom:18px}
+.sdate-card{background:var(--surface);border-radius:var(--radius);border:2px solid var(--border);padding:16px 18px;box-shadow:var(--shadow)}
+.sdate-card.active-col{border-color:var(--purple2);box-shadow:0 0 0 3px rgba(123,47,247,.1)}
+.sdate-card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.sdate-label{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:var(--primary)}
+.sdate-badge{font-size:9.5px;font-weight:700;padding:3px 10px;border-radius:20px;background:rgba(123,47,247,.12);color:var(--purple2)}
+.sdate-input-wrap{display:flex;align-items:center;gap:8px}
+.sdate-input-wrap input[type=date]{flex:1;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:8px 11px;font-size:13px;font-family:'Inter',sans-serif;color:var(--text);background:var(--surface);outline:none}
+.sdate-input-wrap input[type=date]:focus{border-color:var(--purple2);box-shadow:0 0 0 3px rgba(123,47,247,.1)}
+.settle-table{width:100%;border-collapse:collapse;font-size:12.5px}
+.settle-table thead th{background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;font-size:10px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;padding:10px 10px;white-space:nowrap}
+.settle-table thead th:first-child{border-radius:8px 0 0 0}
+.settle-table thead th:last-child{border-radius:0 8px 0 0}
+.settle-table tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
+.settle-table tbody tr:hover{background:rgba(123,47,247,.03)}
+.settle-table tbody tr:nth-child(even){background:rgba(123,47,247,.02)}
+.settle-table tbody td{padding:8px 10px;vertical-align:middle}
+.settle-amt-input{border:1.5px solid var(--border);border-radius:6px;padding:6px 9px;font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--text);background:var(--surface);outline:none;width:100%;max-width:130px;transition:border .15s}
+.settle-amt-input:focus{border-color:var(--purple2);box-shadow:0 0 0 2px rgba(123,47,247,.1)}
+.settle-amt-input.has-value{border-color:var(--emerald);background:rgba(6,214,160,.05);color:#07a37a;font-weight:700}
+.save-mapping-bar{background:linear-gradient(135deg,rgba(123,47,247,.07),rgba(168,85,247,.05));border:2px dashed rgba(123,47,247,.3);border-radius:var(--radius);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:18px}
+.smb-text{font-size:13px;font-weight:600;color:var(--purple)}
+.smb-sub{font-size:11.5px;color:var(--text3);margin-top:2px}
+.settle-sum-row{background:linear-gradient(135deg,var(--purple),var(--purple2));border-radius:0 0 8px 8px}
+.settle-sum-row td{color:#fff;font-weight:700;padding:10px 10px!important;font-size:12px}
+.dl-btn-wrap{display:flex;gap:8px;flex-wrap:wrap}
+
+/* IMAGE DOWNLOAD STYLES */
+.settle-print-area{background:#fff;border-radius:var(--radius);overflow:hidden}
+.settle-print-header{background:linear-gradient(135deg,#0a2463,#1e4db7);padding:20px 28px;color:#fff}
+.settle-print-header h2{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;letter-spacing:.5px}
+.settle-print-header p{font-size:12px;color:rgba(255,255,255,.7);margin-top:4px}
+.settle-print-sub{background:linear-gradient(135deg,var(--purple),var(--purple2));padding:10px 28px;color:#fff;font-size:12px;font-weight:600}
+.settle-print-body{padding:16px}
 
 /* IMPORT MODAL STYLES */
 .import-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:12px 0}
@@ -169,7 +219,7 @@ tbody td.mono{font-family:'JetBrains Mono',monospace;font-size:11.5px}
 .opening-info{font-size:10.5px;color:var(--text3);margin-top:3px;font-style:italic}
 .opening-info.has-data{color:#07a37a;font-weight:600;font-style:normal}
 
-@media(max-width:768px){.sidebar{display:none}.main-content,.footer{margin-left:0}.topbar{padding:0 14px}.consol-summary{grid-template-columns:1fr}.col-map-grid{grid-template-columns:1fr}}
+@media(max-width:768px){.sidebar{display:none}.main-content,.footer{margin-left:0}.topbar{padding:0 14px}.consol-summary{grid-template-columns:1fr}.col-map-grid{grid-template-columns:1fr}.settlement-date-cols{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -186,13 +236,14 @@ tbody td.mono{font-family:'JetBrains Mono',monospace;font-size:11.5px}
   <button class="nav-btn active" onclick="showSection('home')" id="nav-home"><i class="fas fa-home"></i> Dashboard</button>
   <div class="sidebar-section">Modules</div>
   <button class="nav-btn" onclick="showSection('daily')" id="nav-daily"><i class="fas fa-calendar-day"></i> Daily Salary</button>
+  <button class="nav-btn settle-btn" onclick="showSection('settlement')" id="nav-settlement"><i class="fas fa-file-invoice-dollar"></i> Daily Settlement</button>
   <button class="nav-btn" onclick="showSection('monthwise')" id="nav-monthwise"><i class="fas fa-calendar-alt"></i> Month Wise View</button>
   <button class="nav-btn" onclick="showSection('mileage')" id="nav-mileage"><i class="fas fa-route"></i> Mileage</button>
   <button class="nav-btn" onclick="showSection('consolidated')" id="nav-consolidated"><i class="fas fa-layer-group"></i> Consolidated</button>
   <div class="sidebar-section">Data</div>
   <button class="nav-btn export-btn" onclick="exportAllExcel()"><i class="fas fa-file-excel"></i> Export All Excel</button>
   <button class="nav-btn import-btn" onclick="openImportModal()"><i class="fas fa-file-import"></i> Import Excel</button>
-  <button class="nav-btn" onclick="if(confirm('Clear ALL data? This cannot be undone!')){localStorage.clear();entries=[];mileageData=[];renderAll();showToast('All data cleared.','error')}" style="color:var(--accent);margin-top:4px"><i class="fas fa-trash-alt"></i> Clear All Data</button>
+  <button class="nav-btn" onclick="if(confirm('Clear ALL data? This cannot be undone!')){localStorage.clear();entries=[];mileageData=[];settlementData=[];renderAll();showToast('All data cleared.','error')}" style="color:var(--accent);margin-top:4px"><i class="fas fa-trash-alt"></i> Clear All Data</button>
 </div>
 
 <div class="main-content">
@@ -202,6 +253,7 @@ tbody td.mono{font-family:'JetBrains Mono',monospace;font-size:11.5px}
     <div class="stat-cards" id="homeStat"></div>
     <div class="module-cards">
       <div class="module-card" onclick="showSection('daily')"><div class="mc-stripe" style="background:linear-gradient(90deg,var(--primary),var(--primary2))"></div><div class="mc-icon">📅</div><div class="mc-name">Daily Salary</div><div class="mc-desc">Day-wise driver salary with opening balance, settlement & outstanding tracking.</div></div>
+      <div class="module-card" onclick="showSection('settlement')"><div class="mc-stripe" style="background:linear-gradient(90deg,var(--purple),var(--purple2))"></div><div class="mc-icon">💰</div><div class="mc-name">Daily Settlement</div><div class="mc-desc">Enter settlement amounts for multiple dates per driver. Save mapping to auto-assign into Daily Salary.</div></div>
       <div class="module-card" onclick="showSection('monthwise')"><div class="mc-stripe" style="background:linear-gradient(90deg,var(--emerald),#07a37a)"></div><div class="mc-icon">📆</div><div class="mc-name">Month Wise View</div><div class="mc-desc">Monthly summary per driver.</div></div>
       <div class="module-card" onclick="showSection('mileage')"><div class="mc-stripe" style="background:linear-gradient(90deg,var(--gold),var(--accent2))"></div><div class="mc-icon">🛣️</div><div class="mc-name">Mileage</div><div class="mc-desc">Trip-wise mileage per truck — Trip 1, 2, 3 & Average.</div></div>
       <div class="module-card" onclick="showSection('consolidated')"><div class="mc-stripe" style="background:linear-gradient(90deg,var(--accent),var(--accent2))"></div><div class="mc-icon">📊</div><div class="mc-name">Consolidated Salary</div><div class="mc-desc">Full consolidated report across all daily entries.</div></div>
@@ -219,6 +271,46 @@ tbody td.mono{font-family:'JetBrains Mono',monospace;font-size:11.5px}
       <div style="padding-top:18px"><button class="btn btn-ghost" onclick="document.getElementById('filterDate').value='';document.getElementById('searchDriver').value='';renderDailyTable()"><i class="fas fa-times"></i> Clear</button></div>
     </div></div>
     <div class="card-box" style="padding:0 0 6px"><div class="table-wrap"><table><thead><tr><th>S.No</th><th>Date</th><th>Name</th><th>Contact</th><th>Truck No</th><th>DL No</th><th>Page No</th><th>Opening Bal</th><th>Settlement</th><th>Net Salary</th><th>Paid Salary</th><th>Outstanding</th><th>Remarks</th><th>Action</th></tr></thead><tbody id="dailyBody"></tbody></table></div></div>
+  </div>
+
+  <!-- DAILY SETTLEMENT -->
+  <div class="section" id="section-settlement">
+    <div class="settlement-header-strip">
+      <div>
+        <div class="shs-title"><i class="fas fa-file-invoice-dollar" style="margin-right:8px"></i>Daily Settlement</div>
+        <div class="shs-sub">Enter settlement amounts per driver with multiple settlement dates. Save Mapping → auto-assigns to Daily Salary.</div>
+      </div>
+      <div class="dl-btn-wrap">
+        <button class="btn btn-emerald" onclick="exportSettlementExcel()"><i class="fas fa-file-excel"></i> Export Excel</button>
+        <button class="btn" style="background:#fff;color:var(--purple);border:1.5px solid var(--purple2);font-weight:700" onclick="downloadSettlementImage()"><i class="fas fa-image"></i> Download Image</button>
+        <button class="btn btn-primary" onclick="openAddSettlementModal()"><i class="fas fa-plus"></i> Add Row</button>
+      </div>
+    </div>
+
+    <!-- Settlement Date Column Config -->
+    <div class="card-box" style="padding:16px 20px;margin-bottom:14px">
+      <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:12px;display:flex;align-items:center;gap:8px"><i class="fas fa-calendar-check" style="color:var(--purple2)"></i> Settlement Date Columns — Set dates manually</div>
+      <div class="settlement-date-cols" id="settleDateCols"></div>
+    </div>
+
+    <!-- Save Mapping Bar -->
+    <div class="save-mapping-bar">
+      <div>
+        <div class="smb-text"><i class="fas fa-magic" style="margin-right:6px"></i>Save Mapping → Auto-assign to Daily Salary</div>
+        <div class="smb-sub">Click "Save Mapping" to push all settlement entries to the Daily Salary module automatically.</div>
+      </div>
+      <button class="btn btn-purple" onclick="saveSettlementMapping()"><i class="fas fa-save"></i> Save Mapping</button>
+    </div>
+
+    <!-- Settlement Table -->
+    <div class="card-box" style="padding:0 0 6px" id="settlePrintArea">
+      <div class="table-wrap">
+        <table class="settle-table" id="settleTable">
+          <thead id="settleTableHead"></thead>
+          <tbody id="settleBody"></tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
   <!-- MONTH WISE -->
@@ -247,7 +339,7 @@ tbody td.mono{font-family:'JetBrains Mono',monospace;font-size:11.5px}
 
 <div class="footer"><span>MMROADWAYS — Driver Salary Management System | Admin: Ragu Anna</span><span>Developed by <strong style="color:var(--primary2)">Vicky</strong> | 2026</span></div>
 
-<!-- ADD MODAL -->
+<!-- ADD DAILY ENTRY MODAL -->
 <div class="modal-overlay" id="addModal">
   <div class="modal-box">
     <div class="modal-title"><i class="fas fa-user-plus"></i> <span id="modalTitle">Add Driver Entry</span></div>
@@ -286,6 +378,37 @@ tbody td.mono{font-family:'JetBrains Mono',monospace;font-size:11.5px}
   </div>
 </div>
 
+<!-- ADD SETTLEMENT ROW MODAL -->
+<div class="modal-overlay" id="settlementModal">
+  <div class="modal-box" style="max-width:560px">
+    <div class="modal-title" style="color:var(--purple)"><i class="fas fa-file-invoice-dollar"></i> <span id="settleModalTitle">Add Settlement Row</span></div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label"><i class="fas fa-hashtag" style="color:var(--purple2);margin-right:4px"></i>S.No</label>
+        <input type="number" class="form-control" id="sf_sno" placeholder="Auto">
+      </div>
+      <div class="form-group">
+        <label class="form-label"><i class="fas fa-user" style="color:var(--primary2);margin-right:4px"></i>Driver Name *</label>
+        <div class="autocomplete-wrap">
+          <input type="text" class="form-control" id="sf_name" placeholder="Type name..." autocomplete="off" oninput="onSettleNameInput(this.value)" onkeydown="acKeyNav(event,'settleNameDropdown')" onfocus="onSettleNameInput(this.value)">
+          <div class="autocomplete-dropdown" id="settleNameDropdown"></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label"><i class="fas fa-truck" style="color:var(--gold);margin-right:4px"></i>Truck No</label>
+        <input type="text" class="form-control" id="sf_truck" placeholder="Truck Number">
+      </div>
+      <div class="form-group">
+        <label class="form-label">DL No</label>
+        <input type="text" class="form-control" id="sf_dl" placeholder="DL Number">
+      </div>
+    </div>
+    <!-- Settlement date amounts will be shown here dynamically -->
+    <div id="sf_dateAmounts" style="margin-top:14px"></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('settlementModal')">Cancel</button><button class="btn btn-purple" onclick="saveSettlementRow()"><i class="fas fa-save"></i> Save Row</button></div>
+  </div>
+</div>
+
 <!-- MILEAGE MODAL -->
 <div class="modal-overlay" id="mileageModal">
   <div class="modal-box">
@@ -306,8 +429,6 @@ tbody td.mono{font-family:'JetBrains Mono',monospace;font-size:11.5px}
 <div class="modal-overlay" id="importModal">
   <div class="modal-box" style="max-width:820px">
     <div class="modal-title"><i class="fas fa-file-import"></i> Import Excel — Smart Column Mapping</div>
-
-    <!-- Step 1: Upload -->
     <div id="importStep1">
       <div class="info-banner"><i class="fas fa-info-circle"></i>
         <div>
@@ -327,19 +448,14 @@ tbody td.mono{font-family:'JetBrains Mono',monospace;font-size:11.5px}
         <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none" onchange="handleFileSelect(event)">
       </div>
     </div>
-
-    <!-- Step 2: Preview & Import -->
     <div id="importStep2" style="display:none">
       <div id="importWarnBanner" style="display:none" class="warn-banner"><i class="fas fa-exclamation-triangle"></i><span id="importWarnText"></span></div>
       <div class="import-stats" id="importStats"></div>
       <div style="font-size:12.5px;font-weight:700;color:var(--text);margin:10px 0 6px"><i class="fas fa-columns" style="color:var(--emerald)"></i> Column Mapping (Excel Header → App Field)</div>
       <div class="col-map-grid" id="mappingGrid"></div>
       <div style="font-size:12.5px;font-weight:700;color:var(--text);margin:12px 0 5px"><i class="fas fa-eye" style="color:var(--sky)"></i> Data Preview (first 8 rows)</div>
-      <div class="preview-scroll">
-        <table class="import-preview-table" id="previewTable"></table>
-      </div>
+      <div class="preview-scroll"><table class="import-preview-table" id="previewTable"></table></div>
     </div>
-
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('importModal');resetImport()"><i class="fas fa-times"></i> Cancel</button>
       <button class="btn btn-ghost" id="btnBack" style="display:none" onclick="resetImport()"><i class="fas fa-arrow-left"></i> Back</button>
@@ -350,19 +466,33 @@ tbody td.mono{font-family:'JetBrains Mono',monospace;font-size:11.5px}
 
 <div class="toast" id="toast"><i class="fas fa-check-circle"></i> <span id="toastMsg"></span></div>
 
+<!-- html2canvas for image download -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
 <script>
 /* ====================================================================
    EXCEL MASTER DATABASE — 284 drivers
 ==================================================================== */
-const EXCEL_DB = [{"name":"SIVAKUMAR","truck":"KA 01 AK 2266","dl":"1376","page":"32","opening":30318},{"name":"MUNIRAJ","truck":"KA 01 AK 2288","dl":"1308","page":"253","opening":5041},{"name":"GOBINATH","truck":"KA 01 AK 2288","dl":"1596","page":"273","opening":8888},{"name":"GOVINDARAJU","truck":"KA 01 AK 2288","dl":"1604","page":"285","opening":4102},{"name":"Umesh Hebbali","truck":"KA 01 AK 2288","dl":"803","page":"338","opening":6880},{"name":"GOVINDAN","truck":"KA 01 AL 1266","dl":"980","page":"245","opening":1845},{"name":"RAMESH","truck":"KA 01 AL 1266","dl":"1641","page":"353","opening":0},{"name":"SHEKAPPA CHALAWADGI","truck":"KA 01 AL 1266","dl":"1797","page":"381","opening":0},{"name":"VIJAYAKUMAR","truck":"KA 01 AL 1288","dl":"812","page":"395","opening":400},{"name":"ALFAD N","truck":"KA 01 AL 1288","dl":"1723","page":"497","opening":8510},{"name":"MASANAMUTHU","truck":"TN 52  AA 0033","dl":"1089","page":"121","opening":12380},{"name":"MATHIAS ARUMAI","truck":"TN 52  AA 0033","dl":"1551","page":"181","opening":0},{"name":"JAYARAJ","truck":"TN 52  AA 0033","dl":"1778","page":"467","opening":2804},{"name":"NAVEEN KUMAR","truck":"TN 52  AA 0033","dl":"1572","page":"267","opening":0},{"name":"MADHAVAN","truck":"TN 52  AA 0033","dl":"1461","page":"62","opening":6251},{"name":"ARULRAJ","truck":"TN 52 AA 0077","dl":"1505","page":"93","opening":4690},{"name":"PARTHIPAN","truck":"TN 52 AA 0077","dl":"1436","page":"241","opening":0},{"name":"JAYASEELAN","truck":"TN 52 AA 0077","dl":"1586","page":"259","opening":0},{"name":"LALESAB S SALAWADGI","truck":"TN 52 AA 0077","dl":"1782","page":"477","opening":5741},{"name":"SURESH","truck":"TN 52 AA 0099","dl":"687","page":"549","opening":6376},{"name":"SATHIYARAJ","truck":"TN 52 AA 0333","dl":"1680","page":"409","opening":270},{"name":"UDAYAKUMAR MALI","truck":"TN 52 AA 0333","dl":"826","page":"45","opening":0},{"name":"HARISH KANAKANNAVAR","truck":"TN 52 AA 0333","dl":"1821","page":"222","opening":18199},{"name":"RAM BRISH YADAV","truck":"TN 52 AA 0666","dl":"25","page":"399","opening":0},{"name":"JOHN PAL","truck":"TN 52 AA 0666","dl":"1554","page":"188","opening":11377},{"name":"SURESH M","truck":"TN 52 AA 0666","dl":"1787","page":"506","opening":6327},{"name":"VADIVELAN","truck":"TN 52 AA 2355","dl":"1447","page":"55","opening":0},{"name":"Chidambaram","truck":"TN 52 AA 2355","dl":"","page":"","opening":2350},{"name":"MARAN","truck":"TN 52 AA 2355","dl":"288","page":"216","opening":0},{"name":"KALIMUTHU","truck":"TN 52 AA 2799","dl":"1667","page":"389","opening":0},{"name":"WASIM","truck":"TN 52 AA 2799","dl":"1829","page":"374","opening":0},{"name":"DHIVAKARAN","truck":"TN 52 AA 2799","dl":"1533","page":"159","opening":0},{"name":"PRADHAP","truck":"TN 52 AA 2799","dl":"1196","page":"269","opening":-121},{"name":"ALBIN SHIJU","truck":"TN 52 AA 2799","dl":"1837","page":"358","opening":23080},{"name":"PRAKASH YADAV","truck":"TN 52 AA 3155","dl":"1544","page":"175","opening":0},{"name":"INDRAKANTH","truck":"TN 52 AA 3155","dl":"925","page":"172","opening":-7300},{"name":"VIJAYAKUMAR KALLPUR","truck":"TN 52 AA 3155","dl":"776","page":"73","opening":0},{"name":"SARANAPPA","truck":"TN 52 AA 3155","dl":"1105","page":"339","opening":13450},{"name":"THIRUVENGADAM","truck":"TN 52 AA 3155","dl":"819","page":"487","opening":11476},{"name":"KATHIRAVAN","truck":"TN 52 AA 3177","dl":"1244","page":"425","opening":262},{"name":"MOHAMMAD ISMAIL","truck":"TN 52 AA 3177","dl":"1835","page":"191","opening":0},{"name":"SENTIL","truck":"TN 52 AA 3177","dl":"1598","page":"299","opening":0},{"name":"MANJUPRASAD","truck":"TN 52 AA 3177","dl":"605","page":"323","opening":8570},{"name":"SUDALAI KUMAR S","truck":"TN 52 AA 3177","dl":"1675","page":"419","opening":18475},{"name":"SHIVANYYA S HACHIN","truck":"TN 52 AA 3299","dl":"1200","page":"23","opening":0},{"name":"SUBRAMANI","truck":"TN 52 AA 3299","dl":"1642","page":"351","opening":-5000},{"name":"Kandasamy","truck":"TN 52 AA 3299","dl":"327","page":"102","opening":5927},{"name":"CHENNA GOWDA","truck":"TN 52 AA 3488","dl":"1459","page":"67","opening":165},{"name":"Moorthi B","truck":"TN 52 AA 3488","dl":"1833","page":"270","opening":20729},{"name":"MANIKANDAN","truck":"TN 52 AA 4866","dl":"1435","page":"85","opening":976},{"name":"MAHESH","truck":"TN 52 AA 4866","dl":"1665","page":"373","opening":1420},{"name":"ADARSH V G","truck":"TN 52 AA 4866","dl":"1838","page":"236","opening":20499},{"name":"MURUGAN","truck":"TN 52 AA 5144","dl":"1629","page":"319","opening":5449},{"name":"AJITHKUMAR","truck":"TN 52 AA 5144","dl":"","page":"","opening":0},{"name":"SANKAR","truck":"TN 52 AA 6255","dl":"1339","page":"137","opening":-4714},{"name":"ANSAD","truck":"TN 52 AA 6255","dl":"1661","page":"369","opening":244},{"name":"RAVICHANDRAN","truck":"TN 52 AA 6255","dl":"1522","page":"129","opening":0},{"name":"ASHISH KUMAR MAURYA","truck":"TN 52 AA 6255","dl":"","page":"","opening":0},{"name":"MERA JUDDIN","truck":"TN 52 AA 6233","dl":"1806","page":"136","opening":0},{"name":"VASANTHAKUMAR","truck":"TN 52 AA 6233","dl":"1832","page":"144","opening":0},{"name":"RAJAGOBALA K","truck":"TN 52 AA 6233","dl":"1535","page":"277","opening":-168},{"name":"MANIKANDAN","truck":"TN 52 AA 6233","dl":"599","page":"265","opening":0},{"name":"VELLAVAR","truck":"TN 52 AA 6566","dl":"1621","page":"289","opening":0},{"name":"MAREESWARAN","truck":"TN 52 AA 6755","dl":"1462","page":"59","opening":0},{"name":"ALAGU CHOKKAN","truck":"TN 52 AA 6755","dl":"1565","page":"203","opening":5000},{"name":"MOORTY","truck":"TN 52 AA 6755","dl":"1575","page":"235","opening":0},{"name":"ALBIN SHIJU","truck":"TN 52 AA 6755","dl":"1837","page":"358","opening":8580},{"name":"SANOTHESH EMMI","truck":"TN 52 AA 7988","dl":"1468","page":"53","opening":0},{"name":"THAYAPANDI","truck":"TN 52 AA 7988","dl":"1417","page":"113","opening":-3451},{"name":"SIDHURAJ","truck":"TN 52 AA 7988","dl":"1516","page":"355","opening":7798},{"name":"GANESA PANDIYAN","truck":"TN 52 AA 7988","dl":"1726","page":"493","opening":15555},{"name":"MUTHUKUMAR","truck":"TN 52 AA 8177","dl":"1681","page":"405","opening":3320},{"name":"JAGADESWARAN","truck":"TN 52 AA 8177","dl":"1620","page":"295","opening":4985},{"name":"JAINULLABUDEEN S","truck":"TN 52 AA 8177","dl":"1825","page":"186","opening":5864},{"name":"MOHAMMED SHAJITH","truck":"TN 52 AA 8199","dl":"1541","page":"171","opening":964},{"name":"SANTHOSH","truck":"TN 52 AA 8199","dl":"1039","page":"97","opening":-21787},{"name":"ARUNKUMAR","truck":"TN 52 AA 8199","dl":"1625","page":"331","opening":528},{"name":"PRAVIN KUMAR","truck":"TN 52 AA 8199","dl":"1668","page":"442","opening":5893},{"name":"HANMAAP","truck":"TN 52 AA 8388","dl":"1803","page":"380","opening":150},{"name":"ARUN KARUNA","truck":"TN 52 AA 8388","dl":"1411","page":"106","opening":-2593},{"name":"AJITHKUMAR","truck":"TN 52 AA 8388","dl":"1492","page":"157","opening":0},{"name":"PANEERSELVAM","truck":"TN 52 AA 8388","dl":"1576","page":"237","opening":4715},{"name":"SIVAKUMAR","truck":"TN 52 AA 8388","dl":"1622","page":"301","opening":0},{"name":"LALU","truck":"TN 52 AA 8388","dl":"1662","page":"371","opening":500},{"name":"PRAVEEN KUMAR","truck":"TN 52 AA 8388","dl":"1721","page":"495","opening":5250},{"name":"GANESHAPERUMAL","truck":"TN 52 AA 8388","dl":"1467","page":"262","opening":0},{"name":"SURESH AMBADAGATTI","truck":"TN 52 AA 9822","dl":"1519","page":"133","opening":0},{"name":"RAJA","truck":"TN 52 AA 9822","dl":"1502","page":"83","opening":-1000},{"name":"JAYA SIMMAN","truck":"TN 52 AA 9822","dl":"1577","page":"243","opening":0},{"name":"MEENAKSHI SUNDRAM","truck":"TN 52 AA 9822","dl":"1647","page":"357","opening":0},{"name":"SATHISH DATTU DOLARE","truck":"TN 52 AA 9822","dl":"1777","page":"511","opening":8551},{"name":"RAMESH N DOLASE","truck":"TN 52 AB 0011","dl":"1800","page":"503","opening":7361},{"name":"ALAGURAJU","truck":"TN 52 AB 0044","dl":"768","page":"153","opening":0},{"name":"PRAKASH","truck":"TN 52 AB 0044","dl":"1600","page":"307","opening":-2342},{"name":"MALAIRAJAN.M","truck":"TN 52 AB 0044","dl":"1742","page":"551","opening":14724},{"name":"AJITH","truck":"TN 52 AB 3344","dl":"1478","page":"149","opening":0},{"name":"MALLANGOUDA","truck":"TN 52 AB 3344","dl":"1601","page":"305","opening":275},{"name":"MAJUAPPA","truck":"TN 52 AB 3344","dl":"1633","page":"347","opening":-1088},{"name":"ROSHAN P S","truck":"TN 52 AB 3344","dl":"1840","page":"542","opening":0},{"name":"MANUPRASAD","truck":"TN 52 AB 3455","dl":"1655","page":"401","opening":0},{"name":"GOPI","truck":"TN 52 AB 3455","dl":"1536","page":"165","opening":0},{"name":"PERUMAL","truck":"TN 52 AB 3455","dl":"1563","page":"239","opening":0},{"name":"MANOJ V","truck":"TN 52 AB 3455","dl":"1731","page":"529","opening":5340},{"name":"KARUPPASAMY","truck":"TN 52 AB 3566","dl":"1526","page":"145","opening":0},{"name":"RAVI MARAN","truck":"TN 52 AB 3566","dl":"1561","page":"231","opening":0},{"name":"SELVARAJ","truck":"TN 52 AB 3566","dl":"1614","page":"293","opening":0},{"name":"Basavaraj Chougala","truck":"TN 52 AB 3566","dl":"1061","page":"18","opening":5985},{"name":"POWNRAJ","truck":"TN 52 AB 3577","dl":"1425","page":"87","opening":-12202},{"name":"ARUNPANDIYAN","truck":"TN 52 AB 3577","dl":"1766","page":"541","opening":0},{"name":"VIJAYAKUMAR","truck":"TN 52 AB 3599","dl":"1384","page":"111","opening":0},{"name":"LAKSHMANAN","truck":"TN 52 AB 3599","dl":"1112","page":"29","opening":2164},{"name":"NEELAMEGAM","truck":"TN 52 AB 3599","dl":"1319","page":"385","opening":8021},{"name":"SANKAR S","truck":"TN 52 AB 3933","dl":"1507","page":"99","opening":18128},{"name":"RAMASUBMANIYAN","truck":"TN 52 AB 3933","dl":"1503","page":"79","opening":252},{"name":"KANDASAMY G","truck":"TN 52 AB 3933","dl":"1753","page":"519","opening":6931},{"name":"UMESH HUBLI","truck":"TN 52 AB 4004","dl":"803","page":"338","opening":0},{"name":"PRAVEEN KUMAR","truck":"TN 52 AB 4004","dl":"1721","page":"495","opening":0},{"name":"RAVI BELAWADI","truck":"TN 52 AB 5000","dl":"1550","page":"183","opening":8819},{"name":"RAJENDRAN R (NEW)","truck":"TN 52 AB 5000","dl":"1110","page":"346","opening":7623},{"name":"BABESH","truck":"TN 52 AB 6166","dl":"1518","page":"131","opening":0},{"name":"DHARMARAJ YADAV","truck":"TN 52 AB 6166","dl":"1499","page":"115","opening":0},{"name":"ANBURAJ","truck":"TN 52 AB 6166","dl":"1594","page":"333","opening":72},{"name":"MUTHURAJA","truck":"TN 52 AB 6166","dl":"1567","page":"206","opening":6451},{"name":"Basavaraj Hanagal","truck":"TN 52 AB 6299","dl":"1710","page":"475","opening":5948},{"name":"SELVAGANAPATHY","truck":"TN 52 AB 6611","dl":"271","page":"77","opening":0},{"name":"SUNDARAN","truck":"TN 52 AB 6611","dl":"1546","page":"197","opening":0},{"name":"SHIVRAJ","truck":"TN 52 AB 6611","dl":"1842","page":"331","opening":7020},{"name":"PERUMAL","truck":"TN 52 AB 7007","dl":"1564","page":"201","opening":2896},{"name":"SANTHOSHKUMAR","truck":"TN 52 AB 7007","dl":"1051","page":"227","opening":0},{"name":"AJMAT PATHAN","truck":"TN 52 AB 7007","dl":"1812","page":"384","opening":13570},{"name":"SHARANAPPA KANDAGAL","truck":"TN 52 AB 7133","dl":"1678","page":"411","opening":6954},{"name":"MANJUNATH","truck":"TN 52 AB 7133","dl":"1571","page":"225","opening":835},{"name":"PERUMAL","truck":"TN 52 AB 7133","dl":"1616","page":"309","opening":9028},{"name":"NATARAJAN","truck":"TN 52 AB 7133","dl":"1348","page":"44","opening":5666},{"name":"RAJA","truck":"TN 52 AB 7199","dl":"1548","page":"199","opening":4320},{"name":"SUBRAMANI","truck":"TN 52 AB 7199","dl":"1585","page":"257","opening":0},{"name":"SEENIVASAN","truck":"TN 52 AB 7199","dl":"1529","page":"291","opening":969},{"name":"VIJAY RAJ PAL","truck":"TN 52 AB 7199","dl":"1747","page":"513","opening":7638},{"name":"JAYACHANDRAN","truck":"TN 52 AB 7244","dl":"1682","page":"417","opening":12180},{"name":"PRADEEP","truck":"TN 52 AB 7244","dl":"1434","page":"397","opening":0},{"name":"SURESH","truck":"TN 52 AB 7244","dl":"1666","page":"387","opening":3086},{"name":"NAGENDRAN","truck":"TN 52 AB 7244","dl":"1820","page":"218","opening":9007},{"name":"JEEVAN KUMAR","truck":"TN 52 AB 8000","dl":"1003","page":"19","opening":29321},{"name":"RAMRAJ","truck":"TN 52 AB 8000","dl":"1423","page":"49","opening":0},{"name":"MUTHUVEL MURUGAN","truck":"TN 52 AB 8000","dl":"1632","page":"327","opening":0},{"name":"MOHAMMED KHUR BATHULLA","truck":"TN 52 AB 8000","dl":"1807","page":"134","opening":0},{"name":"FIROJ MULLA","truck":"TN 52 AC 4233","dl":"1559","page":"223","opening":0},{"name":"ANANDAPANDY P","truck":"TN 52 AC 4233","dl":"1523","page":"152","opening":6135},{"name":"SHIVARAJ N","truck":"TN 52 AC 4255","dl":"1520","page":"147","opening":1493},{"name":"PRABU LINGAM","truck":"TN 52 AC 4255","dl":"1776","page":"538","opening":26126},{"name":"MURUGESAN","truck":"TN 52 AC 4288","dl":"1187","page":"25","opening":0},{"name":"SHANKAR R","truck":"TN 52 AC 4288","dl":"1644","page":"367","opening":3027},{"name":"RAJESH KUMAR","truck":"TN 52 AC 4288","dl":"1815","page":"490","opening":5852},{"name":"AMALJITH","truck":"TN 52 AC 4611","dl":"1835","page":"184","opening":0},{"name":"RAJU M HIWALE","truck":"TN 52 AC 4611","dl":"1817","page":"382","opening":5900},{"name":"RAJASEKAR","truck":"TN 52 AC 4633","dl":"1337","page":"407","opening":-8461},{"name":"SHARANAPPA","truck":"TN 52 AC 4633","dl":"1099","page":"43","opening":23674},{"name":"PRAVEENKUMAR","truck":"TN 52 AC 4633","dl":"1831","page":"284","opening":6409},{"name":"MAHINDRAN","truck":"TN 52 AC 7333","dl":"1805","page":"132","opening":13797},{"name":"SANTHOSH SAMBHAJI","truck":"TN 52 AC 7366","dl":"1648","page":"393","opening":0},{"name":"ALAGARSAMAY","truck":"TN 52 AC 7366","dl":"1441","page":"57","opening":0},{"name":"SULEMAN S NADAF","truck":"TN 52 AC 7366","dl":"1483","page":"65","opening":-3102},{"name":"MUSTAK","truck":"TN 52 AC 7366","dl":"7366","page":"185","opening":0},{"name":"PARASURAM","truck":"TN 52 AC 7366","dl":"1673","page":"483","opening":5265},{"name":"SELVAKUMAR","truck":"TN 52 AC 7455","dl":"1637","page":"335","opening":5620},{"name":"SATHISH","truck":"TN 52 AC 7455","dl":"1636","page":"329","opening":0},{"name":"DHARMALINGAM","truck":"TN 52 AC 7555","dl":"1693","page":"379","opening":19},{"name":"SELVAKUMAR","truck":"TN 52 AC 7555","dl":"1595","page":"275","opening":0},{"name":"RAVICHANDRAN R","truck":"TN 52 AC 7555","dl":"1798","page":"396","opening":5278},{"name":"PONRAJ","truck":"TN 52 AC 7855","dl":"1846","page":"330","opening":4260},{"name":"KALIYAMOORTHY","truck":"TN 52 AC 7855","dl":"1163","page":"221","opening":-13080},{"name":"SANTHOSH KUMAR PAL","truck":"TN 52 AC 8166","dl":"1542","page":"174","opening":0},{"name":"SENTHIL RAJAN","truck":"TN 52 AC 8166","dl":"1496","page":"69","opening":1270},{"name":"AKILAN S","truck":"TN 52 AC 8166","dl":"1843","page":"434","opening":3150},{"name":"BASAVARAJ REDDY","truck":"TN 52 AD 3944","dl":"773","page":"15","opening":0},{"name":"CYRIL LOURDUSAMY","truck":"TN 52 AD 3944","dl":"1487","page":"71","opening":0},{"name":"KANHAIYALAL YADAV","truck":"TN 52 AD 3944","dl":"1393","page":"51","opening":6346},{"name":"KRISHNA PERUMAL","truck":"TN 52 AD 3944","dl":"808","page":"315","opening":0},{"name":"HARISH HASAN","truck":"TN 52 AD 3944","dl":"1690","page":"445","opening":0},{"name":"JEGATHISH","truck":"TN 52 AD 4088","dl":"1416","page":"263","opening":-823},{"name":"SAKEER","truck":"TN 52 AD 4088","dl":"1508","page":"46","opening":0},{"name":"RAJEESH KUMAR","truck":"TN 52 AD 4088","dl":"1826","page":"212","opening":11042},{"name":"MANTHESH","truck":"TN 52 AD 4133","dl":"645","page":"413","opening":1108},{"name":"VITAL PATIL","truck":"TN 52 AD 4133","dl":"1652","page":"383","opening":3436},{"name":"SATBA MANGULKAR","truck":"TN 52 AD 4133","dl":"1654","page":"391","opening":36406},{"name":"UMESH RAJA","truck":"TN 52 AD 4355","dl":"1360","page":"92","opening":-76},{"name":"BASAVARAJ MELLALLI","truck":"TN 52 AD 4355","dl":"1674","page":"457","opening":16601},{"name":"CHANDRASEKAARAN","truck":"TN 52 AD 4755","dl":"1330","page":"95","opening":0},{"name":"MANIKANDAN","truck":"TN 52 AD 4755","dl":"1734","page":"517","opening":0},{"name":"SARAVANAKUMAR","truck":"TN 52 AD 4755","dl":"1708","page":"469","opening":20806},{"name":"SHIVANAND","truck":"TN 52 AD 4988","dl":"740","page":"13","opening":-2456},{"name":"GANESH TAYADE","truck":"TN 52 AD 4988","dl":"1779","page":"447","opening":6064},{"name":"SANTHRUKUMAR","truck":"TN 52 AD 9488","dl":"1495","page":"109","opening":391},{"name":"IRRANNA","truck":"TN 52 AD 9488","dl":"1109","page":"47","opening":2189},{"name":"DINESHKUMAR","truck":"TN 52 AD 9488","dl":"1610","page":"304","opening":18745},{"name":"SATHIYARAJ S","truck":"TN 52 AD 9866","dl":"1781","page":"523","opening":16532},{"name":"ARJUN","truck":"TN 52 AE 1244","dl":"889","page":"21","opening":1448},{"name":"YOGESH PATIL","truck":"TN 52 AE 1244","dl":"1770","page":"555","opening":0},{"name":"NAGARAJU","truck":"TN 52 AE 1388","dl":"499","page":"164","opening":0},{"name":"BHANU PAL","truck":"TN 52 AE 1544","dl":"1823","page":"388","opening":5860},{"name":"THIRUPATHI R","truck":"TN 52 AE 3533","dl":"1686","page":"449","opening":17561},{"name":"KALAISELVAM","truck":"TN 52 AE 3866","dl":"1284","page":"124","opening":0},{"name":"ESHWAR","truck":"TN 52 AE 3866","dl":"1813","page":"264","opening":19327},{"name":"VALMIK PATIL","truck":"TN 52 AE 4244","dl":"1735","page":"535","opening":5285},{"name":"Saravanan","truck":"TN 52 AE 4699","dl":"1504","page":"154","opening":6404},{"name":"KARTHICK","truck":"TN 52 AE 4955","dl":"800","page":"140","opening":5806},{"name":"VITTAL DR","truck":"TN 52 AE 8155","dl":"1802","page":"456","opening":8880},{"name":"SIVAKUMAR","truck":"TN 52 AE 8399","dl":"1540","page":"167","opening":29},{"name":"MANIKANDAN","truck":"TN 52 AE 8399","dl":"599","page":"265","opening":6062},{"name":"HARISHA","truck":"TN 52 AE 8399","dl":"769","page":"12","opening":3000},{"name":"NAMDEV GHEMBADE","truck":"TN 52 AE 8555","dl":"1410","page":"377","opening":6991},{"name":"AMRISH","truck":"TN 52 AE 8699","dl":"1477","page":"63","opening":75},{"name":"Rajesh Patil","truck":"TN 52 AE 8699","dl":"1165","page":"178","opening":21883},{"name":"MANO BHARATHI","truck":"TN 52 AE 8744","dl":"1631","page":"344","opening":0},{"name":"SUDHAKAR T","truck":"TN 52 AE 8744","dl":"1839","page":"252","opening":0},{"name":"SANTHOSH D PATIL","truck":"TN 52 AE 9677","dl":"1517","page":"123","opening":377},{"name":"Sasikumar","truck":"TN 52 AE 9677","dl":"1602","page":"280","opening":20177},{"name":"RAJKUMAR R","truck":"TN 52 AF 1699","dl":"1745","page":"531","opening":5280},{"name":"ARUN KARAN","truck":"TN 52 AF 1699","dl":"1411","page":"106","opening":9407},{"name":"PRATHAP A","truck":"TN 52 AF 1766","dl":"1562","page":"219","opening":48049},{"name":"SRINIVASAN","truck":"TN 52 AF 1766","dl":"1628","page":"313","opening":6237},{"name":"SARAVAVAN V","truck":"TN 52 AF 2399","dl":"743","page":"169","opening":17264},{"name":"ARUN PATIL","truck":"TN 52 AF 3677","dl":"1148","page":"76","opening":4799},{"name":"VAISAKH","truck":"TN 52 H 7166","dl":"1659","page":"403","opening":310},{"name":"HARI RAM SUNDAR B","truck":"TN 52 H 7166","dl":"1740","page":"543","opening":0},{"name":"PRAKASH","truck":"TN 52 H 7355","dl":"1286","page":"89","opening":3894},{"name":"VINAYA","truck":"TN 52 H 7355","dl":"1300","page":"33","opening":0},{"name":"MALAISAMY","truck":"TN 52 H 7355","dl":"1630","page":"325","opening":364},{"name":"RAHUL ES","truck":"TN 52 H 7355","dl":"1792","page":"547","opening":14796},{"name":"VINOTH KUMAR","truck":"TN 52 L 5866","dl":"1387","page":"141","opening":677},{"name":"ADAIKKALAM V","truck":"TN 52 L 5866","dl":"1827","page":"176","opening":12040},{"name":"THESINGURAJA","truck":"TN 52 L 5941","dl":"1270","page":"195","opening":-2483},{"name":"MANIKANDAN","truck":"TN 52 L 5941","dl":"1573","page":"249","opening":144},{"name":"SOUNDARAJAN","truck":"TN 52 L 5941","dl":"1624","page":"297","opening":0},{"name":"JACOB MERLIN RAJ","truck":"TN 52 L 5941","dl":"1775","page":"501","opening":5357},{"name":"JOSEBHARULNESAN","truck":"TN 52 L 6124","dl":"1429","page":"251","opening":-18705},{"name":"PERIYASAMY","truck":"TN 52 L 6140","dl":"1190","page":"286","opening":0},{"name":"SUNIL KUMAR","truck":"TN 52 L 6140","dl":"1611","page":"283","opening":0},{"name":"JOHNSON","truck":"TN 52 L 6349","dl":"1257","page":"427","opening":9075},{"name":"CHARLES MUTHURAJ","truck":"TN 52 L 6349","dl":"1510","page":"105","opening":0},{"name":"VELU MATHAN","truck":"TN 52 L 6349","dl":"1638","page":"341","opening":0},{"name":"PACHAIAPPAN R","truck":"TN 52 L 6349","dl":"1525","page":"509","opening":2214},{"name":"KARTHIKEYAN","truck":"TN 52 L 6925","dl":"1217","page":"162","opening":5334},{"name":"SHAJU","truck":"TN 52 L 6964","dl":"1646","page":"365","opening":0},{"name":"SAKTHIVEL","truck":"TN 52 L 6964","dl":"1501","page":"118","opening":4700},{"name":"PACKLAND","truck":"TN 52 L 7004","dl":"1500","page":"103","opening":0},{"name":"SANKAR T","truck":"TN 52 L 7004","dl":"1547","page":"210","opening":4109},{"name":"MURUGAN","truck":"TN 52 L 7024","dl":"1302","page":"39","opening":-640},{"name":"MAGALINGAM","truck":"TN 52 L 7024","dl":"1582","page":"317","opening":0},{"name":"RAMESH","truck":"TN 52 L 7024","dl":"1338","page":"545","opening":4827},{"name":"PRADAP","truck":"TN 52 P 4630","dl":"1562","page":"219","opening":0},{"name":"SUNILKUMAR","truck":"TN 52 P 4630","dl":"1639","page":"349","opening":89},{"name":"KEWALSWAMY","truck":"TN 52 P 4630","dl":"445","page":"192","opening":-600},{"name":"VENKATESH","truck":"TN 52 P 4654","dl":"602","page":"271","opening":0},{"name":"PERIYASAMY","truck":"TN 52 P 4654","dl":"1618","page":"321","opening":0},{"name":"S KARTHICK","truck":"TN 52 P 4654","dl":"1683","page":"424","opening":13864},{"name":"SANTHOSH NALTE","truck":"TN 52 R 3255","dl":"1557","page":"233","opening":1890},{"name":"Vinod Yadav","truck":"TN 52 R 3255","dl":"1482","page":"81","opening":10341},{"name":"RAM MANI NAI","truck":"TN 52 R 5688","dl":"1524","page":"135","opening":0},{"name":"VIJAY","truck":"TN 52 R 5688","dl":"497","page":"229","opening":0},{"name":"BUDDESAB","truck":"TN 52 R 5688","dl":"1619","page":"281","opening":274},{"name":"MARIMUTHU","truck":"TN 52 R 5688","dl":"1818","page":"508","opening":23804},{"name":"VENKATESHKANNA","truck":"TN 52 R 6288","dl":"1095","page":"255","opening":0},{"name":"ARUNKUMAR","truck":"TN 52 R 6288","dl":"1658","page":"361","opening":1399},{"name":"RAJARAM","truck":"TN 52 R 6288","dl":"1566","page":"208","opening":0},{"name":"Jagathesh kumar K","truck":"TN 52 R 6355","dl":"1578","page":"248","opening":22991},{"name":"RAJA","truck":"TN 52 R 6377","dl":"","page":"179","opening":13283},{"name":"MAHESHKUMAR","truck":"TN 52 R 6377","dl":"1635","page":"375","opening":0},{"name":"SAMEER R","truck":"TN 52 R 6377","dl":"1705","page":"473","opening":0},{"name":"SUNDARAPANDIYAN","truck":"TN 52 R 6377","dl":"","page":"334","opening":18000},{"name":"VETRIVEL","truck":"TN 52 R 6588","dl":"1475","page":"193","opening":-8000},{"name":"CITIZEN","truck":"TN 52 R 6588","dl":"1282","page":"311","opening":0},{"name":"ROHIT","truck":"TN 52 R 6588","dl":"1758","page":"394","opening":5874},{"name":"AKASH","truck":"TN 52 R 9266","dl":"1623","page":"287","opening":0},{"name":"VELUMARUTI PONDIT","truck":"TN 52 R 9266","dl":"1634","page":"359","opening":5296},{"name":"KARUPPASAMY","truck":"TN 52 R 9266","dl":"1824","page":"213","opening":6247},{"name":"MANOJ VARMA","truck":"TN 52 R 9366","dl":"1515","page":"125","opening":350},{"name":"NATWAR LAL YADAV","truck":"TN 52 R 9366","dl":"1476","page":"217","opening":10448},{"name":"MANOJKUMAR","truck":"TN 52 R 9366","dl":"1663","page":"363","opening":-3888},{"name":"JAWAHARLAL","truck":"TN 52 R 9366","dl":"1714","page":"481","opening":6611},{"name":"PRASHANT CHOUGULE","truck":"TN 52 R 9766","dl":"1513","page":"119","opening":60},{"name":"RATHINAVEL PANDIAN S","truck":"TN 52 R 9766","dl":"1552","page":"190","opening":14293},{"name":"Kemanna Kattimani","truck":"TN 52 R 9855","dl":"1212","page":"260","opening":16580},{"name":"BASSAPPA NIDAGUNDI","truck":"TN 52 R 9959","dl":"1754","page":"525","opening":14318}];
+const EXCEL_DB=[{"name":"SIVAKUMAR","truck":"KA 01 AK 2266","dl":"1376","page":"32","opening":30318},{"name":"MUNIRAJ","truck":"KA 01 AK 2288","dl":"1308","page":"253","opening":5041},{"name":"GOBINATH","truck":"KA 01 AK 2288","dl":"1596","page":"273","opening":8888},{"name":"GOVINDARAJU","truck":"KA 01 AK 2288","dl":"1604","page":"285","opening":4102},{"name":"Umesh Hebbali","truck":"KA 01 AK 2288","dl":"803","page":"338","opening":6880},{"name":"GOVINDAN","truck":"KA 01 AL 1266","dl":"980","page":"245","opening":1845},{"name":"RAMESH","truck":"KA 01 AL 1266","dl":"1641","page":"353","opening":0},{"name":"SHEKAPPA CHALAWADGI","truck":"KA 01 AL 1266","dl":"1797","page":"381","opening":0},{"name":"VIJAYAKUMAR","truck":"KA 01 AL 1288","dl":"812","page":"395","opening":400},{"name":"ALFAD N","truck":"KA 01 AL 1288","dl":"1723","page":"497","opening":8510},{"name":"MASANAMUTHU","truck":"TN 52  AA 0033","dl":"1089","page":"121","opening":12380},{"name":"MATHIAS ARUMAI","truck":"TN 52  AA 0033","dl":"1551","page":"181","opening":0},{"name":"JAYARAJ","truck":"TN 52  AA 0033","dl":"1778","page":"467","opening":2804},{"name":"NAVEEN KUMAR","truck":"TN 52  AA 0033","dl":"1572","page":"267","opening":0},{"name":"MADHAVAN","truck":"TN 52  AA 0033","dl":"1461","page":"62","opening":6251},{"name":"ARULRAJ","truck":"TN 52 AA 0077","dl":"1505","page":"93","opening":4690},{"name":"PARTHIPAN","truck":"TN 52 AA 0077","dl":"1436","page":"241","opening":0},{"name":"JAYASEELAN","truck":"TN 52 AA 0077","dl":"1586","page":"259","opening":0},{"name":"LALESAB S SALAWADGI","truck":"TN 52 AA 0077","dl":"1782","page":"477","opening":5741},{"name":"SURESH","truck":"TN 52 AA 0099","dl":"687","page":"549","opening":6376},{"name":"SATHIYARAJ","truck":"TN 52 AA 0333","dl":"1680","page":"409","opening":270},{"name":"UDAYAKUMAR MALI","truck":"TN 52 AA 0333","dl":"826","page":"45","opening":0},{"name":"HARISH KANAKANNAVAR","truck":"TN 52 AA 0333","dl":"1821","page":"222","opening":18199},{"name":"RAM BRISH YADAV","truck":"TN 52 AA 0666","dl":"25","page":"399","opening":0},{"name":"JOHN PAL","truck":"TN 52 AA 0666","dl":"1554","page":"188","opening":11377},{"name":"SURESH M","truck":"TN 52 AA 0666","dl":"1787","page":"506","opening":6327},{"name":"VADIVELAN","truck":"TN 52 AA 2355","dl":"1447","page":"55","opening":0},{"name":"Chidambaram","truck":"TN 52 AA 2355","dl":"","page":"","opening":2350},{"name":"MARAN","truck":"TN 52 AA 2355","dl":"288","page":"216","opening":0},{"name":"KALIMUTHU","truck":"TN 52 AA 2799","dl":"1667","page":"389","opening":0},{"name":"WASIM","truck":"TN 52 AA 2799","dl":"1829","page":"374","opening":0},{"name":"DHIVAKARAN","truck":"TN 52 AA 2799","dl":"1533","page":"159","opening":0},{"name":"PRADHAP","truck":"TN 52 AA 2799","dl":"1196","page":"269","opening":-121},{"name":"ALBIN SHIJU","truck":"TN 52 AA 2799","dl":"1837","page":"358","opening":23080},{"name":"PRAKASH YADAV","truck":"TN 52 AA 3155","dl":"1544","page":"175","opening":0},{"name":"INDRAKANTH","truck":"TN 52 AA 3155","dl":"925","page":"172","opening":-7300},{"name":"VIJAYAKUMAR KALLPUR","truck":"TN 52 AA 3155","dl":"776","page":"73","opening":0},{"name":"SARANAPPA","truck":"TN 52 AA 3155","dl":"1105","page":"339","opening":13450},{"name":"THIRUVENGADAM","truck":"TN 52 AA 3155","dl":"819","page":"487","opening":11476},{"name":"KATHIRAVAN","truck":"TN 52 AA 3177","dl":"1244","page":"425","opening":262},{"name":"MOHAMMAD ISMAIL","truck":"TN 52 AA 3177","dl":"1835","page":"191","opening":0},{"name":"SENTIL","truck":"TN 52 AA 3177","dl":"1598","page":"299","opening":0},{"name":"MANJUPRASAD","truck":"TN 52 AA 3177","dl":"605","page":"323","opening":8570},{"name":"SUDALAI KUMAR S","truck":"TN 52 AA 3177","dl":"1675","page":"419","opening":18475},{"name":"SHIVANYYA S HACHIN","truck":"TN 52 AA 3299","dl":"1200","page":"23","opening":0},{"name":"SUBRAMANI","truck":"TN 52 AA 3299","dl":"1642","page":"351","opening":-5000},{"name":"Kandasamy","truck":"TN 52 AA 3299","dl":"327","page":"102","opening":5927},{"name":"CHENNA GOWDA","truck":"TN 52 AA 3488","dl":"1459","page":"67","opening":165},{"name":"Moorthi B","truck":"TN 52 AA 3488","dl":"1833","page":"270","opening":20729},{"name":"MANIKANDAN","truck":"TN 52 AA 4866","dl":"1435","page":"85","opening":976},{"name":"MAHESH","truck":"TN 52 AA 4866","dl":"1665","page":"373","opening":1420},{"name":"ADARSH V G","truck":"TN 52 AA 4866","dl":"1838","page":"236","opening":20499},{"name":"MURUGAN","truck":"TN 52 AA 5144","dl":"1629","page":"319","opening":5449},{"name":"AJITHKUMAR","truck":"TN 52 AA 5144","dl":"","page":"","opening":0},{"name":"SANKAR","truck":"TN 52 AA 6255","dl":"1339","page":"137","opening":-4714},{"name":"ANSAD","truck":"TN 52 AA 6255","dl":"1661","page":"369","opening":244},{"name":"RAVICHANDRAN","truck":"TN 52 AA 6255","dl":"1522","page":"129","opening":0},{"name":"ASHISH KUMAR MAURYA","truck":"TN 52 AA 6255","dl":"","page":"","opening":0},{"name":"MERA JUDDIN","truck":"TN 52 AA 6233","dl":"1806","page":"136","opening":0},{"name":"VASANTHAKUMAR","truck":"TN 52 AA 6233","dl":"1832","page":"144","opening":0},{"name":"RAJAGOBALA K","truck":"TN 52 AA 6233","dl":"1535","page":"277","opening":-168},{"name":"MANIKANDAN","truck":"TN 52 AA 6233","dl":"599","page":"265","opening":0},{"name":"VELLAVAR","truck":"TN 52 AA 6566","dl":"1621","page":"289","opening":0},{"name":"MAREESWARAN","truck":"TN 52 AA 6755","dl":"1462","page":"59","opening":0},{"name":"ALAGU CHOKKAN","truck":"TN 52 AA 6755","dl":"1565","page":"203","opening":5000},{"name":"MOORTY","truck":"TN 52 AA 6755","dl":"1575","page":"235","opening":0},{"name":"ALBIN SHIJU","truck":"TN 52 AA 6755","dl":"1837","page":"358","opening":8580},{"name":"SANOTHESH EMMI","truck":"TN 52 AA 7988","dl":"1468","page":"53","opening":0},{"name":"THAYAPANDI","truck":"TN 52 AA 7988","dl":"1417","page":"113","opening":-3451},{"name":"SIDHURAJ","truck":"TN 52 AA 7988","dl":"1516","page":"355","opening":7798},{"name":"GANESA PANDIYAN","truck":"TN 52 AA 7988","dl":"1726","page":"493","opening":15555},{"name":"MUTHUKUMAR","truck":"TN 52 AA 8177","dl":"1681","page":"405","opening":3320},{"name":"JAGADESWARAN","truck":"TN 52 AA 8177","dl":"1620","page":"295","opening":4985},{"name":"JAINULLABUDEEN S","truck":"TN 52 AA 8177","dl":"1825","page":"186","opening":5864},{"name":"MOHAMMED SHAJITH","truck":"TN 52 AA 8199","dl":"1541","page":"171","opening":964},{"name":"SANTHOSH","truck":"TN 52 AA 8199","dl":"1039","page":"97","opening":-21787},{"name":"ARUNKUMAR","truck":"TN 52 AA 8199","dl":"1625","page":"331","opening":528},{"name":"PRAVIN KUMAR","truck":"TN 52 AA 8199","dl":"1668","page":"442","opening":5893},{"name":"HANMAAP","truck":"TN 52 AA 8388","dl":"1803","page":"380","opening":150},{"name":"ARUN KARUNA","truck":"TN 52 AA 8388","dl":"1411","page":"106","opening":-2593},{"name":"AJITHKUMAR","truck":"TN 52 AA 8388","dl":"1492","page":"157","opening":0},{"name":"PANEERSELVAM","truck":"TN 52 AA 8388","dl":"1576","page":"237","opening":4715},{"name":"SIVAKUMAR","truck":"TN 52 AA 8388","dl":"1622","page":"301","opening":0},{"name":"LALU","truck":"TN 52 AA 8388","dl":"1662","page":"371","opening":500},{"name":"PRAVEEN KUMAR","truck":"TN 52 AA 8388","dl":"1721","page":"495","opening":5250},{"name":"GANESHAPERUMAL","truck":"TN 52 AA 8388","dl":"1467","page":"262","opening":0},{"name":"SURESH AMBADAGATTI","truck":"TN 52 AA 9822","dl":"1519","page":"133","opening":0},{"name":"RAJA","truck":"TN 52 AA 9822","dl":"1502","page":"83","opening":-1000},{"name":"JAYA SIMMAN","truck":"TN 52 AA 9822","dl":"1577","page":"243","opening":0},{"name":"MEENAKSHI SUNDRAM","truck":"TN 52 AA 9822","dl":"1647","page":"357","opening":0},{"name":"SATHISH DATTU DOLARE","truck":"TN 52 AA 9822","dl":"1777","page":"511","opening":8551},{"name":"RAMESH N DOLASE","truck":"TN 52 AB 0011","dl":"1800","page":"503","opening":7361},{"name":"ALAGURAJU","truck":"TN 52 AB 0044","dl":"768","page":"153","opening":0},{"name":"PRAKASH","truck":"TN 52 AB 0044","dl":"1600","page":"307","opening":-2342},{"name":"MALAIRAJAN.M","truck":"TN 52 AB 0044","dl":"1742","page":"551","opening":14724},{"name":"AJITH","truck":"TN 52 AB 3344","dl":"1478","page":"149","opening":0},{"name":"MALLANGOUDA","truck":"TN 52 AB 3344","dl":"1601","page":"305","opening":275},{"name":"MAJUAPPA","truck":"TN 52 AB 3344","dl":"1633","page":"347","opening":-1088},{"name":"ROSHAN P S","truck":"TN 52 AB 3344","dl":"1840","page":"542","opening":0},{"name":"MANUPRASAD","truck":"TN 52 AB 3455","dl":"1655","page":"401","opening":0},{"name":"GOPI","truck":"TN 52 AB 3455","dl":"1536","page":"165","opening":0},{"name":"PERUMAL","truck":"TN 52 AB 3455","dl":"1563","page":"239","opening":0},{"name":"MANOJ V","truck":"TN 52 AB 3455","dl":"1731","page":"529","opening":5340},{"name":"KARUPPASAMY","truck":"TN 52 AB 3566","dl":"1526","page":"145","opening":0},{"name":"RAVI MARAN","truck":"TN 52 AB 3566","dl":"1561","page":"231","opening":0},{"name":"SELVARAJ","truck":"TN 52 AB 3566","dl":"1614","page":"293","opening":0},{"name":"Basavaraj Chougala","truck":"TN 52 AB 3566","dl":"1061","page":"18","opening":5985},{"name":"POWNRAJ","truck":"TN 52 AB 3577","dl":"1425","page":"87","opening":-12202},{"name":"ARUNPANDIYAN","truck":"TN 52 AB 3577","dl":"1766","page":"541","opening":0},{"name":"VIJAYAKUMAR","truck":"TN 52 AB 3599","dl":"1384","page":"111","opening":0},{"name":"LAKSHMANAN","truck":"TN 52 AB 3599","dl":"1112","page":"29","opening":2164},{"name":"NEELAMEGAM","truck":"TN 52 AB 3599","dl":"1319","page":"385","opening":8021},{"name":"SANKAR S","truck":"TN 52 AB 3933","dl":"1507","page":"99","opening":18128},{"name":"RAMASUBMANIYAN","truck":"TN 52 AB 3933","dl":"1503","page":"79","opening":252},{"name":"KANDASAMY G","truck":"TN 52 AB 3933","dl":"1753","page":"519","opening":6931},{"name":"UMESH HUBLI","truck":"TN 52 AB 4004","dl":"803","page":"338","opening":0},{"name":"PRAVEEN KUMAR","truck":"TN 52 AB 4004","dl":"1721","page":"495","opening":0},{"name":"RAVI BELAWADI","truck":"TN 52 AB 5000","dl":"1550","page":"183","opening":8819},{"name":"RAJENDRAN R (NEW)","truck":"TN 52 AB 5000","dl":"1110","page":"346","opening":7623},{"name":"BABESH","truck":"TN 52 AB 6166","dl":"1518","page":"131","opening":0},{"name":"DHARMARAJ YADAV","truck":"TN 52 AB 6166","dl":"1499","page":"115","opening":0},{"name":"ANBURAJ","truck":"TN 52 AB 6166","dl":"1594","page":"333","opening":72},{"name":"MUTHURAJA","truck":"TN 52 AB 6166","dl":"1567","page":"206","opening":6451},{"name":"Basavaraj Hanagal","truck":"TN 52 AB 6299","dl":"1710","page":"475","opening":5948},{"name":"SELVAGANAPATHY","truck":"TN 52 AB 6611","dl":"271","page":"77","opening":0},{"name":"SUNDARAN","truck":"TN 52 AB 6611","dl":"1546","page":"197","opening":0},{"name":"SHIVRAJ","truck":"TN 52 AB 6611","dl":"1842","page":"331","opening":7020},{"name":"PERUMAL","truck":"TN 52 AB 7007","dl":"1564","page":"201","opening":2896},{"name":"SANTHOSHKUMAR","truck":"TN 52 AB 7007","dl":"1051","page":"227","opening":0},{"name":"AJMAT PATHAN","truck":"TN 52 AB 7007","dl":"1812","page":"384","opening":13570},{"name":"SHARANAPPA KANDAGAL","truck":"TN 52 AB 7133","dl":"1678","page":"411","opening":6954},{"name":"MANJUNATH","truck":"TN 52 AB 7133","dl":"1571","page":"225","opening":835},{"name":"PERUMAL","truck":"TN 52 AB 7133","dl":"1616","page":"309","opening":9028},{"name":"NATARAJAN","truck":"TN 52 AB 7133","dl":"1348","page":"44","opening":5666},{"name":"RAJA","truck":"TN 52 AB 7199","dl":"1548","page":"199","opening":4320},{"name":"SUBRAMANI","truck":"TN 52 AB 7199","dl":"1585","page":"257","opening":0},{"name":"SEENIVASAN","truck":"TN 52 AB 7199","dl":"1529","page":"291","opening":969},{"name":"VIJAY RAJ PAL","truck":"TN 52 AB 7199","dl":"1747","page":"513","opening":7638},{"name":"JAYACHANDRAN","truck":"TN 52 AB 7244","dl":"1682","page":"417","opening":12180},{"name":"PRADEEP","truck":"TN 52 AB 7244","dl":"1434","page":"397","opening":0},{"name":"SURESH","truck":"TN 52 AB 7244","dl":"1666","page":"387","opening":3086},{"name":"NAGENDRAN","truck":"TN 52 AB 7244","dl":"1820","page":"218","opening":9007},{"name":"JEEVAN KUMAR","truck":"TN 52 AB 8000","dl":"1003","page":"19","opening":29321},{"name":"RAMRAJ","truck":"TN 52 AB 8000","dl":"1423","page":"49","opening":0},{"name":"MUTHUVEL MURUGAN","truck":"TN 52 AB 8000","dl":"1632","page":"327","opening":0},{"name":"MOHAMMED KHUR BATHULLA","truck":"TN 52 AB 8000","dl":"1807","page":"134","opening":0},{"name":"FIROJ MULLA","truck":"TN 52 AC 4233","dl":"1559","page":"223","opening":0},{"name":"ANANDAPANDY P","truck":"TN 52 AC 4233","dl":"1523","page":"152","opening":6135},{"name":"SHIVARAJ N","truck":"TN 52 AC 4255","dl":"1520","page":"147","opening":1493},{"name":"PRABU LINGAM","truck":"TN 52 AC 4255","dl":"1776","page":"538","opening":26126},{"name":"MURUGESAN","truck":"TN 52 AC 4288","dl":"1187","page":"25","opening":0},{"name":"SHANKAR R","truck":"TN 52 AC 4288","dl":"1644","page":"367","opening":3027},{"name":"RAJESH KUMAR","truck":"TN 52 AC 4288","dl":"1815","page":"490","opening":5852},{"name":"AMALJITH","truck":"TN 52 AC 4611","dl":"1835","page":"184","opening":0},{"name":"RAJU M HIWALE","truck":"TN 52 AC 4611","dl":"1817","page":"382","opening":5900},{"name":"RAJASEKAR","truck":"TN 52 AC 4633","dl":"1337","page":"407","opening":-8461},{"name":"SHARANAPPA","truck":"TN 52 AC 4633","dl":"1099","page":"43","opening":23674},{"name":"PRAVEENKUMAR","truck":"TN 52 AC 4633","dl":"1831","page":"284","opening":6409},{"name":"MAHINDRAN","truck":"TN 52 AC 7333","dl":"1805","page":"132","opening":13797},{"name":"SANTHOSH SAMBHAJI","truck":"TN 52 AC 7366","dl":"1648","page":"393","opening":0},{"name":"ALAGARSAMAY","truck":"TN 52 AC 7366","dl":"1441","page":"57","opening":0},{"name":"SULEMAN S NADAF","truck":"TN 52 AC 7366","dl":"1483","page":"65","opening":-3102},{"name":"MUSTAK","truck":"TN 52 AC 7366","dl":"7366","page":"185","opening":0},{"name":"PARASURAM","truck":"TN 52 AC 7366","dl":"1673","page":"483","opening":5265},{"name":"SELVAKUMAR","truck":"TN 52 AC 7455","dl":"1637","page":"335","opening":5620},{"name":"SATHISH","truck":"TN 52 AC 7455","dl":"1636","page":"329","opening":0},{"name":"DHARMALINGAM","truck":"TN 52 AC 7555","dl":"1693","page":"379","opening":19},{"name":"SELVAKUMAR","truck":"TN 52 AC 7555","dl":"1595","page":"275","opening":0},{"name":"RAVICHANDRAN R","truck":"TN 52 AC 7555","dl":"1798","page":"396","opening":5278},{"name":"PONRAJ","truck":"TN 52 AC 7855","dl":"1846","page":"330","opening":4260},{"name":"KALIYAMOORTHY","truck":"TN 52 AC 7855","dl":"1163","page":"221","opening":-13080},{"name":"SANTHOSH KUMAR PAL","truck":"TN 52 AC 8166","dl":"1542","page":"174","opening":0},{"name":"SENTHIL RAJAN","truck":"TN 52 AC 8166","dl":"1496","page":"69","opening":1270},{"name":"AKILAN S","truck":"TN 52 AC 8166","dl":"1843","page":"434","opening":3150},{"name":"BASAVARAJ REDDY","truck":"TN 52 AD 3944","dl":"773","page":"15","opening":0},{"name":"CYRIL LOURDUSAMY","truck":"TN 52 AD 3944","dl":"1487","page":"71","opening":0},{"name":"KANHAIYALAL YADAV","truck":"TN 52 AD 3944","dl":"1393","page":"51","opening":6346},{"name":"KRISHNA PERUMAL","truck":"TN 52 AD 3944","dl":"808","page":"315","opening":0},{"name":"HARISH HASAN","truck":"TN 52 AD 3944","dl":"1690","page":"445","opening":0},{"name":"JEGATHISH","truck":"TN 52 AD 4088","dl":"1416","page":"263","opening":-823},{"name":"SAKEER","truck":"TN 52 AD 4088","dl":"1508","page":"46","opening":0},{"name":"RAJEESH KUMAR","truck":"TN 52 AD 4088","dl":"1826","page":"212","opening":11042},{"name":"MANTHESH","truck":"TN 52 AD 4133","dl":"645","page":"413","opening":1108},{"name":"VITAL PATIL","truck":"TN 52 AD 4133","dl":"1652","page":"383","opening":3436},{"name":"SATBA MANGULKAR","truck":"TN 52 AD 4133","dl":"1654","page":"391","opening":36406},{"name":"UMESH RAJA","truck":"TN 52 AD 4355","dl":"1360","page":"92","opening":-76},{"name":"BASAVARAJ MELLALLI","truck":"TN 52 AD 4355","dl":"1674","page":"457","opening":16601},{"name":"CHANDRASEKAARAN","truck":"TN 52 AD 4755","dl":"1330","page":"95","opening":0},{"name":"MANIKANDAN","truck":"TN 52 AD 4755","dl":"1734","page":"517","opening":0},{"name":"SARAVANAKUMAR","truck":"TN 52 AD 4755","dl":"1708","page":"469","opening":20806},{"name":"SHIVANAND","truck":"TN 52 AD 4988","dl":"740","page":"13","opening":-2456},{"name":"GANESH TAYADE","truck":"TN 52 AD 4988","dl":"1779","page":"447","opening":6064},{"name":"SANTHRUKUMAR","truck":"TN 52 AD 9488","dl":"1495","page":"109","opening":391},{"name":"IRRANNA","truck":"TN 52 AD 9488","dl":"1109","page":"47","opening":2189},{"name":"DINESHKUMAR","truck":"TN 52 AD 9488","dl":"1610","page":"304","opening":18745},{"name":"SATHIYARAJ S","truck":"TN 52 AD 9866","dl":"1781","page":"523","opening":16532},{"name":"ARJUN","truck":"TN 52 AE 1244","dl":"889","page":"21","opening":1448},{"name":"YOGESH PATIL","truck":"TN 52 AE 1244","dl":"1770","page":"555","opening":0},{"name":"NAGARAJU","truck":"TN 52 AE 1388","dl":"499","page":"164","opening":0},{"name":"BHANU PAL","truck":"TN 52 AE 1544","dl":"1823","page":"388","opening":5860},{"name":"THIRUPATHI R","truck":"TN 52 AE 3533","dl":"1686","page":"449","opening":17561},{"name":"KALAISELVAM","truck":"TN 52 AE 3866","dl":"1284","page":"124","opening":0},{"name":"ESHWAR","truck":"TN 52 AE 3866","dl":"1813","page":"264","opening":19327},{"name":"VALMIK PATIL","truck":"TN 52 AE 4244","dl":"1735","page":"535","opening":5285},{"name":"Saravanan","truck":"TN 52 AE 4699","dl":"1504","page":"154","opening":6404},{"name":"KARTHICK","truck":"TN 52 AE 4955","dl":"800","page":"140","opening":5806},{"name":"VITTAL DR","truck":"TN 52 AE 8155","dl":"1802","page":"456","opening":8880},{"name":"SIVAKUMAR","truck":"TN 52 AE 8399","dl":"1540","page":"167","opening":29},{"name":"MANIKANDAN","truck":"TN 52 AE 8399","dl":"599","page":"265","opening":6062},{"name":"HARISHA","truck":"TN 52 AE 8399","dl":"769","page":"12","opening":3000},{"name":"NAMDEV GHEMBADE","truck":"TN 52 AE 8555","dl":"1410","page":"377","opening":6991},{"name":"AMRISH","truck":"TN 52 AE 8699","dl":"1477","page":"63","opening":75},{"name":"Rajesh Patil","truck":"TN 52 AE 8699","dl":"1165","page":"178","opening":21883},{"name":"MANO BHARATHI","truck":"TN 52 AE 8744","dl":"1631","page":"344","opening":0},{"name":"SUDHAKAR T","truck":"TN 52 AE 8744","dl":"1839","page":"252","opening":0},{"name":"SANTHOSH D PATIL","truck":"TN 52 AE 9677","dl":"1517","page":"123","opening":377},{"name":"Sasikumar","truck":"TN 52 AE 9677","dl":"1602","page":"280","opening":20177},{"name":"RAJKUMAR R","truck":"TN 52 AF 1699","dl":"1745","page":"531","opening":5280},{"name":"ARUN KARAN","truck":"TN 52 AF 1699","dl":"1411","page":"106","opening":9407},{"name":"PRATHAP A","truck":"TN 52 AF 1766","dl":"1562","page":"219","opening":48049},{"name":"SRINIVASAN","truck":"TN 52 AF 1766","dl":"1628","page":"313","opening":6237},{"name":"SARAVAVAN V","truck":"TN 52 AF 2399","dl":"743","page":"169","opening":17264},{"name":"ARUN PATIL","truck":"TN 52 AF 3677","dl":"1148","page":"76","opening":4799},{"name":"VAISAKH","truck":"TN 52 H 7166","dl":"1659","page":"403","opening":310},{"name":"HARI RAM SUNDAR B","truck":"TN 52 H 7166","dl":"1740","page":"543","opening":0},{"name":"PRAKASH","truck":"TN 52 H 7355","dl":"1286","page":"89","opening":3894},{"name":"VINAYA","truck":"TN 52 H 7355","dl":"1300","page":"33","opening":0},{"name":"MALAISAMY","truck":"TN 52 H 7355","dl":"1630","page":"325","opening":364},{"name":"RAHUL ES","truck":"TN 52 H 7355","dl":"1792","page":"547","opening":14796},{"name":"VINOTH KUMAR","truck":"TN 52 L 5866","dl":"1387","page":"141","opening":677},{"name":"ADAIKKALAM V","truck":"TN 52 L 5866","dl":"1827","page":"176","opening":12040},{"name":"THESINGURAJA","truck":"TN 52 L 5941","dl":"1270","page":"195","opening":-2483},{"name":"MANIKANDAN","truck":"TN 52 L 5941","dl":"1573","page":"249","opening":144},{"name":"SOUNDARAJAN","truck":"TN 52 L 5941","dl":"1624","page":"297","opening":0},{"name":"JACOB MERLIN RAJ","truck":"TN 52 L 5941","dl":"1775","page":"501","opening":5357},{"name":"JOSEBHARULNESAN","truck":"TN 52 L 6124","dl":"1429","page":"251","opening":-18705},{"name":"PERIYASAMY","truck":"TN 52 L 6140","dl":"1190","page":"286","opening":0},{"name":"SUNIL KUMAR","truck":"TN 52 L 6140","dl":"1611","page":"283","opening":0},{"name":"JOHNSON","truck":"TN 52 L 6349","dl":"1257","page":"427","opening":9075},{"name":"CHARLES MUTHURAJ","truck":"TN 52 L 6349","dl":"1510","page":"105","opening":0},{"name":"VELU MATHAN","truck":"TN 52 L 6349","dl":"1638","page":"341","opening":0},{"name":"PACHAIAPPAN R","truck":"TN 52 L 6349","dl":"1525","page":"509","opening":2214},{"name":"KARTHIKEYAN","truck":"TN 52 L 6925","dl":"1217","page":"162","opening":5334},{"name":"SHAJU","truck":"TN 52 L 6964","dl":"1646","page":"365","opening":0},{"name":"SAKTHIVEL","truck":"TN 52 L 6964","dl":"1501","page":"118","opening":4700},{"name":"PACKLAND","truck":"TN 52 L 7004","dl":"1500","page":"103","opening":0},{"name":"SANKAR T","truck":"TN 52 L 7004","dl":"1547","page":"210","opening":4109},{"name":"MURUGAN","truck":"TN 52 L 7024","dl":"1302","page":"39","opening":-640},{"name":"MAGALINGAM","truck":"TN 52 L 7024","dl":"1582","page":"317","opening":0},{"name":"RAMESH","truck":"TN 52 L 7024","dl":"1338","page":"545","opening":4827},{"name":"PRADAP","truck":"TN 52 P 4630","dl":"1562","page":"219","opening":0},{"name":"SUNILKUMAR","truck":"TN 52 P 4630","dl":"1639","page":"349","opening":89},{"name":"KEWALSWAMY","truck":"TN 52 P 4630","dl":"445","page":"192","opening":-600},{"name":"VENKATESH","truck":"TN 52 P 4654","dl":"602","page":"271","opening":0},{"name":"PERIYASAMY","truck":"TN 52 P 4654","dl":"1618","page":"321","opening":0},{"name":"S KARTHICK","truck":"TN 52 P 4654","dl":"1683","page":"424","opening":13864},{"name":"SANTHOSH NALTE","truck":"TN 52 R 3255","dl":"1557","page":"233","opening":1890},{"name":"Vinod Yadav","truck":"TN 52 R 3255","dl":"1482","page":"81","opening":10341},{"name":"RAM MANI NAI","truck":"TN 52 R 5688","dl":"1524","page":"135","opening":0},{"name":"VIJAY","truck":"TN 52 R 5688","dl":"497","page":"229","opening":0},{"name":"BUDDESAB","truck":"TN 52 R 5688","dl":"1619","page":"281","opening":274},{"name":"MARIMUTHU","truck":"TN 52 R 5688","dl":"1818","page":"508","opening":23804},{"name":"VENKATESHKANNA","truck":"TN 52 R 6288","dl":"1095","page":"255","opening":0},{"name":"ARUNKUMAR","truck":"TN 52 R 6288","dl":"1658","page":"361","opening":1399},{"name":"RAJARAM","truck":"TN 52 R 6288","dl":"1566","page":"208","opening":0},{"name":"Jagathesh kumar K","truck":"TN 52 R 6355","dl":"1578","page":"248","opening":22991},{"name":"RAJA","truck":"TN 52 R 6377","dl":"","page":"179","opening":13283},{"name":"MAHESHKUMAR","truck":"TN 52 R 6377","dl":"1635","page":"375","opening":0},{"name":"SAMEER R","truck":"TN 52 R 6377","dl":"1705","page":"473","opening":0},{"name":"SUNDARAPANDIYAN","truck":"TN 52 R 6377","dl":"","page":"334","opening":18000},{"name":"VETRIVEL","truck":"TN 52 R 6588","dl":"1475","page":"193","opening":-8000},{"name":"CITIZEN","truck":"TN 52 R 6588","dl":"1282","page":"311","opening":0},{"name":"ROHIT","truck":"TN 52 R 6588","dl":"1758","page":"394","opening":5874},{"name":"AKASH","truck":"TN 52 R 9266","dl":"1623","page":"287","opening":0},{"name":"VELUMARUTI PONDIT","truck":"TN 52 R 9266","dl":"1634","page":"359","opening":5296},{"name":"KARUPPASAMY","truck":"TN 52 R 9266","dl":"1824","page":"213","opening":6247},{"name":"MANOJ VARMA","truck":"TN 52 R 9366","dl":"1515","page":"125","opening":350},{"name":"NATWAR LAL YADAV","truck":"TN 52 R 9366","dl":"1476","page":"217","opening":10448},{"name":"MANOJKUMAR","truck":"TN 52 R 9366","dl":"1663","page":"363","opening":-3888},{"name":"JAWAHARLAL","truck":"TN 52 R 9366","dl":"1714","page":"481","opening":6611},{"name":"PRASHANT CHOUGULE","truck":"TN 52 R 9766","dl":"1513","page":"119","opening":60},{"name":"RATHINAVEL PANDIAN S","truck":"TN 52 R 9766","dl":"1552","page":"190","opening":14293},{"name":"Kemanna Kattimani","truck":"TN 52 R 9855","dl":"1212","page":"260","opening":16580},{"name":"BASSAPPA NIDAGUNDI","truck":"TN 52 R 9959","dl":"1754","page":"525","opening":14318}];
 
 /* ===== DATA LAYER ===== */
 const MONTHS=['Feb-25','Mar-25','Apr-25','May-25','Jun-25','Jul-25','Aug-25','Sep-25','Oct-25','Nov-25','Dec-25','Jan-26','Feb-26','Mar-26','Apr-26'];
 let editId=null,selectedMonth='Mar-26',mileageMonth='Mar-26';
 let importParsed=[],importColMap={};
+// Settlement state
+let settleDateCols=[
+  {id:'sdc1',label:'Settlement Date 1',date:''},
+  {id:'sdc2',label:'Settlement Date 2',date:''}
+];
+let editSettleId=null;
+
 function ld(k){try{return JSON.parse(localStorage.getItem(k))||[]}catch{return[]}}
 function sv(k,d){localStorage.setItem(k,JSON.stringify(d))}
-let entries=ld('mmrw_entries'),mileageData=ld('mmrw_mileage');
+let entries=ld('mmrw_entries'),mileageData=ld('mmrw_mileage'),settlementData=ld('mmrw_settlement');
+
+// Load saved settlement date cols if any
+const savedSDC=localStorage.getItem('mmrw_settleDateCols');
+if(savedSDC){try{settleDateCols=JSON.parse(savedSDC)}catch{}}
 
 document.getElementById('topDate').textContent=new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
 
@@ -380,29 +510,20 @@ function showToast(m,t='success'){const e=document.getElementById('toast');e.cla
 function cleanStr(v){return String(v===null||v===undefined?'':v).replace(/\*/g,'').trim()}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
 
-/* ===== PARSE DATE — handles DD.MM.YYYY, DD/MM/YYYY, DD-MM-YYYY, YYYY-MM-DD, Excel serial ===== */
 function parseDate(val){
   if(!val&&val!==0)return '';
-  // Excel serial number
   if(typeof val==='number'&&val>40000&&val<60000){
     const d=XLSX.SSF.parse_date_code(val);
     if(d)return `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;
   }
   const s=String(val).trim();
   if(!s||s==='0')return '';
-  // DD.MM.YYYY or DD/MM/YYYY or DD-MM-YYYY
   let m=s.match(/^(\d{1,2})[.\-\/](\d{1,2})[.\-\/](\d{2,4})$/);
-  if(m){
-    const yr=m[3].length===2?'20'+m[3]:m[3];
-    return `${yr}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
-  }
-  // YYYY-MM-DD already
+  if(m){const yr=m[3].length===2?'20'+m[3]:m[3];return `${yr}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`}
   m=s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if(m)return s;
   return s;
 }
-
-/* ===== DISPLAY DATE: YYYY-MM-DD → DD.MM.YYYY ===== */
 function displayDate(iso){
   if(!iso)return '-';
   const m=iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -418,6 +539,7 @@ function showSection(n){
   const nb=document.getElementById('nav-'+n);if(nb)nb.classList.add('active');
   if(n==='home')renderHome();
   if(n==='daily')renderDailyTable();
+  if(n==='settlement')renderSettlementSection();
   if(n==='monthwise'){renderMonthGrid();renderMonthTable()}
   if(n==='mileage'){renderMileageMonthGrid();renderMileageTable()}
   if(n==='consolidated')renderConsolidated();
@@ -428,16 +550,22 @@ function renderHome(){
   const net=entries.reduce((s,e)=>s+(parseFloat(e.netsalary)||0),0);
   const paid=entries.reduce((s,e)=>s+(parseFloat(e.paid)||0),0);
   const out=entries.reduce((s,e)=>s+(parseFloat(e.outstanding)||0),0);
+  const settleTotal=settlementData.reduce((s,r)=>{
+    return s+settleDateCols.reduce((ss,col)=>{
+      return ss+(parseFloat(r['amt_'+col.id])||0);
+    },0);
+  },0);
   document.getElementById('homeStat').innerHTML=`
     <div class="stat-card blue"><div class="stat-label">Total Entries</div><div class="stat-val">${entries.length}</div></div>
     <div class="stat-card red"><div class="stat-label">Net Salary</div><div class="stat-val">₹${fmt(net)}</div></div>
     <div class="stat-card green"><div class="stat-label">Paid Salary</div><div class="stat-val">₹${fmt(paid)}</div></div>
     <div class="stat-card orange"><div class="stat-label">Outstanding</div><div class="stat-val">₹${fmt(out)}</div></div>
+    <div class="stat-card purple"><div class="stat-label">Settlement Rows</div><div class="stat-val">${settlementData.length}</div></div>
     <div class="stat-card sky"><div class="stat-label">Mileage Records</div><div class="stat-val">${mileageData.length}</div></div>`;
 }
 
 /* ===== AUTOCOMPLETE ENGINE ===== */
-let acHighlight={nameDropdown:-1,truckDropdown:-1};
+let acHighlight={nameDropdown:-1,truckDropdown:-1,settleNameDropdown:-1};
 function norm(s){return String(s||'').toLowerCase().replace(/\s+/g,' ').trim()}
 function searchByName(q){if(!q||q.length<1)return[];const nq=norm(q);return EXCEL_DB.filter(d=>norm(d.name).includes(nq)).slice(0,10)}
 function searchByTruck(q){if(!q||q.length<1)return[];const nq=norm(q);return EXCEL_DB.filter(d=>norm(d.truck).includes(nq)).slice(0,10)}
@@ -459,9 +587,14 @@ function applyAutofill(record){
   else{openEl.value='';infoEl.textContent='No opening balance found';infoEl.className='opening-info';document.getElementById('autofillBannerText').textContent=`Truck, DL & Page filled for ${record.name}`}
   banner.classList.add('show');autoCalc();
 }
+function applySettleAutofill(record){
+  if(record.truck)document.getElementById('sf_truck').value=record.truck;
+  if(record.dl)document.getElementById('sf_dl').value=record.dl;
+}
 function clearAutofillStyles(){['f_truck','f_dl','f_pageno','f_opening'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('autofilled')});document.getElementById('autofillBanner').classList.remove('show');document.getElementById('openingInfo').textContent='Auto-filled from database or last outstanding';document.getElementById('openingInfo').className='opening-info'}
 function onNameInput(val){clearAutofillStyles();const results=searchByName(val);showDropdown('nameDropdown',results,val,'name',function(r){document.getElementById('f_name').value=r.name;closeAllDropdowns();applyAutofill(r)})}
 function onTruckInput(val){const results=searchByTruck(val);showDropdown('truckDropdown',results,val,'truck',function(r){document.getElementById('f_truck').value=r.truck;const nm=document.getElementById('f_name');if(!nm.value.trim()){nm.value=r.name;applyAutofill(r)}else{if(r.dl){const dl=document.getElementById('f_dl');dl.value=r.dl;dl.classList.add('autofilled')}if(r.page){const pg=document.getElementById('f_pageno');pg.value=r.page;pg.classList.add('autofilled')}}closeAllDropdowns()})}
+function onSettleNameInput(val){const results=searchByName(val);showDropdown('settleNameDropdown',results,val,'name',function(r){document.getElementById('sf_name').value=r.name;closeAllDropdowns();applySettleAutofill(r)})}
 function showDropdown(dropId,results,query,labelField,onSelect){
   const drop=document.getElementById(dropId);if(!results.length){drop.innerHTML='';drop.classList.remove('open');return}
   const nq=norm(query);
@@ -479,7 +612,7 @@ function closeAllDropdowns(){document.querySelectorAll('.autocomplete-dropdown')
 function acKeyNav(e,dropId){const drop=document.getElementById(dropId);if(!drop.classList.contains('open'))return;const items=drop.querySelectorAll('.ac-item');if(!items.length)return;if(e.key==='ArrowDown'){e.preventDefault();acHighlight[dropId]=Math.min(acHighlight[dropId]+1,items.length-1)}else if(e.key==='ArrowUp'){e.preventDefault();acHighlight[dropId]=Math.max(acHighlight[dropId]-1,-1)}else if(e.key==='Enter'&&acHighlight[dropId]>=0){e.preventDefault();acSelect(dropId,acHighlight[dropId])}else if(e.key==='Escape'){closeAllDropdowns()}items.forEach((it,i)=>it.classList.toggle('highlighted',i===acHighlight[dropId]))}
 document.addEventListener('click',function(e){if(!e.target.closest('.autocomplete-wrap'))closeAllDropdowns()});
 
-/* ===== ADD/EDIT MODAL ===== */
+/* ===== ADD/EDIT DAILY ENTRY MODAL ===== */
 function openAddModal(id=null){
   editId=id;document.getElementById('modalTitle').textContent=id?'Edit Driver Entry':'Add Driver Entry';clearAutofillStyles();
   const t=new Date().toISOString().split('T')[0];
@@ -547,6 +680,408 @@ function renderDailyTable(){
     <td style="font-size:11.5px;color:var(--text2);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.remarks||'-'}</td>
     <td><button class="btn-icon" onclick="openAddModal('${e.id}')"><i class="fas fa-edit"></i></button><button class="btn-icon del" onclick="deleteEntry('${e.id}')"><i class="fas fa-trash"></i></button></td>
   </tr>`).join('');
+}
+
+/* ====================================================================
+   DAILY SETTLEMENT MODULE
+====================================================================*/
+
+function renderSettlementSection(){
+  renderSettleDateCols();
+  renderSettleTableHeader();
+  renderSettleBody();
+}
+
+/* Render the date column config cards */
+function renderSettleDateCols(){
+  const container=document.getElementById('settleDateCols');
+  container.innerHTML=settleDateCols.map((col,i)=>`
+    <div class="sdate-card ${col.date?'active-col':''}">
+      <div class="sdate-card-head">
+        <div class="sdate-label">${col.label}</div>
+        <span class="sdate-badge">Date ${i+1}</span>
+      </div>
+      <div class="sdate-input-wrap">
+        <input type="date" id="${col.id}_date" value="${col.date||''}" onchange="updateSettleDate('${col.id}',this.value)" placeholder="Select date">
+        ${settleDateCols.length>1?`<button class="btn-icon del" title="Remove column" onclick="removeSettleDateCol('${col.id}')"><i class="fas fa-times-circle"></i></button>`:''}
+      </div>
+      ${col.date?`<div style="font-size:10.5px;color:var(--purple2);font-weight:600;margin-top:4px"><i class="fas fa-calendar-check" style="margin-right:4px"></i>${displayDate(col.date)}</div>`:'<div style="font-size:10.5px;color:var(--text3);margin-top:4px">No date set</div>'}
+    </div>
+  `).join('')+`
+    <div class="sdate-card" style="cursor:pointer;border-style:dashed;display:flex;align-items:center;justify-content:center;min-height:100px;flex-direction:column;gap:8px" onclick="addSettleDateCol()">
+      <i class="fas fa-plus-circle" style="font-size:22px;color:var(--purple2)"></i>
+      <div style="font-size:12px;font-weight:600;color:var(--purple2)">Add Date Column</div>
+    </div>
+  `;
+}
+
+function updateSettleDate(colId,val){
+  const col=settleDateCols.find(c=>c.id===colId);
+  if(col){col.date=val;sv('mmrw_settleDateCols',settleDateCols);renderSettleDateCols();renderSettleTableHeader();renderSettleBody()}
+}
+function addSettleDateCol(){
+  const n=settleDateCols.length+1;
+  settleDateCols.push({id:'sdc'+Date.now(),label:'Settlement Date '+n,date:''});
+  sv('mmrw_settleDateCols',settleDateCols);renderSettlementSection();
+}
+function removeSettleDateCol(colId){
+  if(settleDateCols.length<=1){showToast('Minimum 1 column required!','error');return}
+  if(!confirm('Remove this date column? Amounts entered for this column will be lost.'))return;
+  settleDateCols=settleDateCols.filter(c=>c.id!==colId);
+  sv('mmrw_settleDateCols',settleDateCols);renderSettlementSection();
+}
+
+/* Render the settlement table header */
+function renderSettleTableHeader(){
+  const head=document.getElementById('settleTableHead');
+  head.innerHTML=`<tr>
+    <th style="width:40px">S.No</th>
+    <th>Driver Name</th>
+    <th>Truck No</th>
+    <th>DL No</th>
+    ${settleDateCols.map(col=>`<th>${col.label}<br><span style="font-size:9px;opacity:.8;font-weight:400">${col.date?displayDate(col.date):'(No Date)'}</span></th>`).join('')}
+    <th>Total Amount</th>
+    <th>Action</th>
+  </tr>`;
+}
+
+/* Render settlement rows */
+function renderSettleBody(){
+  const b=document.getElementById('settleBody');
+  if(!settlementData.length){
+    b.innerHTML=`<tr><td colspan="${4+settleDateCols.length+2}"><div class="empty-state"><i class="fas fa-file-invoice-dollar"></i><p>No settlement entries yet. Click "Add Row" to start.</p></div></td></tr>`;
+    return;
+  }
+  let rows='';
+  let grandTotal=0;
+  const colTotals=settleDateCols.map(()=>0);
+
+  settlementData.forEach((row,i)=>{
+    let rowTotal=0;
+    const amtCells=settleDateCols.map((col,ci)=>{
+      const val=parseFloat(row['amt_'+col.id])||0;
+      rowTotal+=val;
+      colTotals[ci]+=val;
+      return`<td><input type="number" class="settle-amt-input ${val?'has-value':''}" value="${val||''}" placeholder="0" onchange="updateSettleAmt('${row.id}','${col.id}',this.value)" oninput="this.classList.toggle('has-value',!!this.value)"></td>`;
+    }).join('');
+    grandTotal+=rowTotal;
+    rows+=`<tr>
+      <td><span class="badge badge-purple">${i+1}</span></td>
+      <td><strong>${row.name}</strong></td>
+      <td><span class="badge badge-gold">${row.truck||'-'}</span></td>
+      <td class="mono" style="font-size:11px">${row.dl||'-'}</td>
+      ${amtCells}
+      <td class="mono"><strong style="color:var(--purple)">₹${fmt(rowTotal)}</strong></td>
+      <td>
+        <button class="btn-icon" onclick="openEditSettlementModal('${row.id}')" title="Edit"><i class="fas fa-edit"></i></button>
+        <button class="btn-icon del" onclick="deleteSettlementRow('${row.id}')" title="Delete"><i class="fas fa-trash"></i></button>
+        <button class="btn-icon save-map" onclick="mapSingleRowToDaily('${row.id}')" title="Map this row to Daily Salary"><i class="fas fa-link"></i></button>
+      </td>
+    </tr>`;
+  });
+
+  // Total row
+  rows+=`<tr class="settle-sum-row">
+    <td colspan="4" style="font-weight:800;font-size:12px">TOTAL</td>
+    ${colTotals.map(t=>`<td class="mono" style="font-weight:800">₹${fmt(t)}</td>`).join('')}
+    <td class="mono" style="font-weight:800;font-size:13px">₹${fmt(grandTotal)}</td>
+    <td></td>
+  </tr>`;
+
+  b.innerHTML=rows;
+}
+
+/* Update amount inline */
+function updateSettleAmt(rowId,colId,val){
+  const row=settlementData.find(r=>r.id===rowId);
+  if(row){row['amt_'+colId]=parseFloat(val)||0;sv('mmrw_settlement',settlementData);renderSettleBody()}
+}
+
+/* Open add settlement row modal */
+function openAddSettlementModal(){
+  editSettleId=null;
+  document.getElementById('settleModalTitle').textContent='Add Settlement Row';
+  document.getElementById('sf_name').value='';
+  document.getElementById('sf_truck').value='';
+  document.getElementById('sf_dl').value='';
+  // Set S.No auto
+  document.getElementById('sf_sno').value=settlementData.length+1;
+  // Render date amount fields
+  renderSettleDateAmountFields(null);
+  document.getElementById('settlementModal').classList.add('show');
+}
+
+function openEditSettlementModal(id){
+  const row=settlementData.find(r=>r.id===id);if(!row)return;
+  editSettleId=id;
+  document.getElementById('settleModalTitle').textContent='Edit Settlement Row';
+  document.getElementById('sf_name').value=row.name||'';
+  document.getElementById('sf_truck').value=row.truck||'';
+  document.getElementById('sf_dl').value=row.dl||'';
+  document.getElementById('sf_sno').value=row.sno||'';
+  renderSettleDateAmountFields(row);
+  document.getElementById('settlementModal').classList.add('show');
+}
+
+function renderSettleDateAmountFields(existingRow){
+  const container=document.getElementById('sf_dateAmounts');
+  container.innerHTML=`<div style="font-size:11px;font-weight:700;color:var(--purple2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px"><i class="fas fa-money-bill-wave" style="margin-right:5px"></i>Settlement Amounts per Date</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px">
+  ${settleDateCols.map(col=>`
+    <div class="form-group">
+      <label class="form-label" style="color:var(--purple)">${col.label} ${col.date?'<span style="color:var(--text3);font-weight:400">('+displayDate(col.date)+')</span>':''}</label>
+      <input type="number" class="form-control" id="sf_amt_${col.id}" placeholder="₹ Amount" value="${existingRow&&existingRow['amt_'+col.id]?existingRow['amt_'+col.id]:''}">
+    </div>
+  `).join('')}
+  </div>`;
+}
+
+function saveSettlementRow(){
+  const nm=document.getElementById('sf_name').value.trim();
+  if(!nm){showToast('Driver Name required!','error');return}
+  const row={
+    id:editSettleId||uid(),
+    sno:document.getElementById('sf_sno').value||settlementData.length+1,
+    name:nm,
+    truck:document.getElementById('sf_truck').value.trim(),
+    dl:document.getElementById('sf_dl').value.trim()
+  };
+  // collect amounts
+  settleDateCols.forEach(col=>{
+    const el=document.getElementById('sf_amt_'+col.id);
+    row['amt_'+col.id]=el?parseFloat(el.value)||0:0;
+  });
+  if(editSettleId){const idx=settlementData.findIndex(r=>r.id===editSettleId);settlementData[idx]=row}
+  else settlementData.push(row);
+  sv('mmrw_settlement',settlementData);
+  closeModal('settlementModal');
+  renderSettleBody();
+  showToast(editSettleId?'Settlement row updated!':'Settlement row added!','purple');
+  editSettleId=null;
+}
+
+function deleteSettlementRow(id){
+  if(!confirm('Delete this settlement row?'))return;
+  settlementData=settlementData.filter(r=>r.id!==id);
+  sv('mmrw_settlement',settlementData);
+  renderSettleBody();
+  showToast('Deleted.','error');
+}
+
+/* ====================================================================
+   SAVE MAPPING — Push settlement data to Daily Salary
+   For each settlement row + each date column with an amount > 0,
+   create a daily salary entry with:
+     date = that column's date
+     name = driver name
+     truck = truck no
+     dl = dl no
+     settlement = that column's amount
+     netsalary = settlement (opening=0 unless found from DB)
+     outstanding = netsalary - paid(0) = netsalary
+====================================================================*/
+function saveSettlementMapping(){
+  if(!settlementData.length){showToast('No settlement data to map!','error');return}
+  const activeCols=settleDateCols.filter(c=>c.date);
+  if(!activeCols.length){showToast('Please set at least one Settlement Date first!','error');return}
+
+  let mapped=0;
+  const newEntries=[];
+
+  settlementData.forEach(row=>{
+    activeCols.forEach(col=>{
+      const amt=parseFloat(row['amt_'+col.id])||0;
+      if(amt<=0)return;
+
+      // Check if entry already exists for this driver + date + amount to avoid duplicates
+      const exists=entries.some(e=>
+        norm(e.name)===norm(row.name)&&
+        e.date===col.date&&
+        parseFloat(e.settlement)===(amt)&&
+        e._fromSettlement===col.id+'_'+row.id
+      );
+      if(exists)return;
+
+      // Look up opening from DB or last outstanding
+      const dbRec=EXCEL_DB.find(d=>norm(d.name)===norm(row.name));
+      const lastOut=getLastOutstanding(row.name,row.truck);
+      const opening=lastOut?lastOut.value:(dbRec?dbRec.opening||0:0);
+      const netsalary=opening+amt;
+      const outstanding=netsalary; // paid = 0 (not entered here)
+
+      newEntries.push({
+        id:uid(),
+        date:col.date,
+        pageno:dbRec?dbRec.page||'':'',
+        name:row.name,
+        contact:'',
+        truck:row.truck||'',
+        dl:row.dl||(dbRec?dbRec.dl||'':''),
+        opening:opening,
+        settlement:amt,
+        netsalary:netsalary,
+        paid:0,
+        outstanding:outstanding,
+        remarks:'From Daily Settlement ('+col.label+')',
+        _fromSettlement:col.id+'_'+row.id
+      });
+      mapped++;
+    });
+  });
+
+  if(mapped===0){showToast('All entries already mapped or no amounts entered.','info');return}
+
+  entries=entries.concat(newEntries);
+  sv('mmrw_entries',entries);
+  showToast(`✅ ${mapped} entries mapped to Daily Salary!`,'success');
+  renderDailyTable();
+}
+
+/* Map single row */
+function mapSingleRowToDaily(rowId){
+  const row=settlementData.find(r=>r.id===rowId);if(!row)return;
+  const activeCols=settleDateCols.filter(c=>c.date);
+  if(!activeCols.length){showToast('Please set at least one Settlement Date!','error');return}
+  let mapped=0;
+  activeCols.forEach(col=>{
+    const amt=parseFloat(row['amt_'+col.id])||0;
+    if(amt<=0)return;
+    const dbRec=EXCEL_DB.find(d=>norm(d.name)===norm(row.name));
+    const lastOut=getLastOutstanding(row.name,row.truck);
+    const opening=lastOut?lastOut.value:(dbRec?dbRec.opening||0:0);
+    const netsalary=opening+amt;
+    entries.push({id:uid(),date:col.date,pageno:dbRec?dbRec.page||'':'',name:row.name,contact:'',truck:row.truck||'',dl:row.dl||(dbRec?dbRec.dl||'':''),opening,settlement:amt,netsalary,paid:0,outstanding:netsalary,remarks:'From Daily Settlement ('+col.label+')',_fromSettlement:col.id+'_'+row.id});
+    mapped++;
+  });
+  if(mapped===0){showToast('No amounts found for this row.','error');return}
+  sv('mmrw_entries',entries);
+  showToast(`${row.name} → ${mapped} entries mapped!`,'success');
+}
+
+/* ===== DOWNLOAD SETTLEMENT AS IMAGE ===== */
+function downloadSettlementImage(){
+  // Build a clean print-friendly HTML table
+  const printDiv=document.createElement('div');
+  printDiv.style.cssText='position:fixed;left:-9999px;top:0;background:#fff;width:900px;padding:0;font-family:Inter,sans-serif';
+
+  let tableHTML=`
+  <div style="background:linear-gradient(135deg,#0a2463,#1e4db7);padding:20px 28px;color:#fff">
+    <div style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;letter-spacing:.5px">MMROADWAYS — Daily Settlement</div>
+    <div style="font-size:12px;color:rgba(255,255,255,.7);margin-top:4px">Admin: Ragu Anna &nbsp;|&nbsp; ${new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'})}</div>
+  </div>
+  <div style="background:linear-gradient(135deg,#7b2ff7,#a855f7);padding:10px 28px;color:#fff;font-size:12px;font-weight:600">
+    ${settleDateCols.filter(c=>c.date).map(c=>c.label+': '+displayDate(c.date)).join('  |  ')||'No dates set'}
+  </div>
+  <div style="padding:16px">
+    <table style="width:100%;border-collapse:collapse;font-size:12px">
+      <thead>
+        <tr style="background:#0a2463;color:#fff">
+          <th style="padding:9px 10px;text-align:left;font-size:10px;letter-spacing:.5px">S.No</th>
+          <th style="padding:9px 10px;text-align:left;font-size:10px;letter-spacing:.5px">Driver Name</th>
+          <th style="padding:9px 10px;text-align:left;font-size:10px;letter-spacing:.5px">Truck No</th>
+          <th style="padding:9px 10px;text-align:left;font-size:10px;letter-spacing:.5px">DL No</th>
+          ${settleDateCols.map(col=>`<th style="padding:9px 10px;text-align:right;font-size:10px;letter-spacing:.5px">${col.label}${col.date?'<br><span style="font-weight:400;font-size:9px">'+displayDate(col.date)+'</span>':''}</th>`).join('')}
+          <th style="padding:9px 10px;text-align:right;font-size:10px;letter-spacing:.5px">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  let grand=0;
+  const colTotals=settleDateCols.map(()=>0);
+  settlementData.forEach((row,i)=>{
+    let rt=0;
+    const amtCells=settleDateCols.map((col,ci)=>{
+      const v=parseFloat(row['amt_'+col.id])||0;rt+=v;colTotals[ci]+=v;
+      return`<td style="padding:7px 10px;text-align:right;font-family:monospace;color:${v?'#07a37a':'#ccc'}">${v?'₹'+fmt(v):'-'}</td>`;
+    }).join('');
+    grand+=rt;
+    tableHTML+=`<tr style="border-bottom:1px solid #e5e7f0;background:${i%2===0?'#f7f9ff':'#fff'}">
+      <td style="padding:7px 10px;color:#888">${i+1}</td>
+      <td style="padding:7px 10px;font-weight:700;color:#0a2463">${row.name}</td>
+      <td style="padding:7px 10px;color:#b85c00;font-weight:600">${row.truck||'-'}</td>
+      <td style="padding:7px 10px;font-family:monospace;font-size:11px">${row.dl||'-'}</td>
+      ${amtCells}
+      <td style="padding:7px 10px;text-align:right;font-weight:800;color:#7b2ff7;font-family:monospace">₹${fmt(rt)}</td>
+    </tr>`;
+  });
+
+  tableHTML+=`<tr style="background:#0a2463;color:#fff">
+    <td colspan="4" style="padding:9px 10px;font-weight:800">TOTAL</td>
+    ${colTotals.map(t=>`<td style="padding:9px 10px;text-align:right;font-weight:800;font-family:monospace">₹${fmt(t)}</td>`).join('')}
+    <td style="padding:9px 10px;text-align:right;font-weight:800;font-family:monospace">₹${fmt(grand)}</td>
+  </tr>`;
+
+  tableHTML+=`</tbody></table></div>
+  <div style="padding:10px 28px;text-align:right;font-size:10px;color:#8e98b5;background:#f7f9ff">Generated by MMROADWAYS Driver Salary System | Developed by Vicky</div>`;
+
+  printDiv.innerHTML=tableHTML;
+  document.body.appendChild(printDiv);
+
+  html2canvas(printDiv,{scale:2,useCORS:true,backgroundColor:'#fff'}).then(canvas=>{
+    document.body.removeChild(printDiv);
+    const link=document.createElement('a');
+    link.download=`MMROADWAYS_Settlement_${new Date().toLocaleDateString('en-IN').replace(/\//g,'-')}.png`;
+    link.href=canvas.toDataURL('image/png');
+    link.click();
+    showToast('Settlement image downloaded!','success');
+  }).catch(err=>{
+    document.body.removeChild(printDiv);
+    showToast('Error generating image: '+err.message,'error');
+  });
+}
+
+/* ===== EXPORT SETTLEMENT EXCEL ===== */
+async function exportSettlementExcel(){
+  const wb=new ExcelJS.Workbook();
+  const headers=['S.No','Driver Name','Truck No','DL No',...settleDateCols.map(c=>c.label+(c.date?' ('+displayDate(c.date)+')':'')),'Total Amount'];
+  const rows=settlementData.map((row,i)=>{
+    let total=0;
+    const amts=settleDateCols.map(col=>{const v=parseFloat(row['amt_'+col.id])||0;total+=v;return v});
+    return[i+1,row.name,row.truck||'',row.dl||'',...amts,total];
+  });
+  addSettlementColorSheet(wb,headers,rows);
+  const buf=await wb.xlsx.writeBuffer();
+  const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`MMROADWAYS_DailySettlement_${new Date().toLocaleDateString('en-IN').replace(/\//g,'-')}.xlsx`;
+  a.click();URL.revokeObjectURL(a.href);showToast('Settlement Excel exported!');
+}
+
+function addSettlementColorSheet(wb,headers,rows){
+  const ws=wb.addWorksheet('Daily Settlement');
+  ws.mergeCells(1,1,1,headers.length);
+  const tCell=ws.getCell(1,1);tCell.value='MMROADWAYS — Daily Settlement';
+  tCell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF7b2ff7'}};tCell.font={name:'Calibri',size:14,bold:true,color:{argb:'FFFFFFFF'}};tCell.alignment={horizontal:'center',vertical:'middle'};ws.getRow(1).height=34;
+  for(let c=2;c<=headers.length;c++){ws.getCell(1,c).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF7b2ff7'}}}
+  ws.mergeCells(2,1,2,headers.length);
+  const sCell=ws.getCell(2,1);sCell.value='Admin: Ragu Anna  |  Developed by Vicky  |  '+new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'});
+  sCell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFa855f7'}};sCell.font={name:'Calibri',size:10,color:{argb:'FFFFFFFF'}};sCell.alignment={horizontal:'center',vertical:'middle'};ws.getRow(2).height=22;
+  for(let c=2;c<=headers.length;c++){ws.getCell(2,c).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFa855f7'}}}
+  const hRow=ws.addRow(headers);hRow.height=26;
+  hRow.eachCell(cell=>{cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF7b2ff7'}};cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FFFFFFFF'}};cell.alignment={horizontal:'center',vertical:'middle',wrapText:true};cell.border={top:{style:'thin'},bottom:{style:'medium'},left:{style:'thin'},right:{style:'thin'}}});
+  rows.forEach((row,ri)=>{
+    const dr=ws.addRow(row);dr.height=21;const even=ri%2===0;
+    dr.eachCell((cell,ci)=>{
+      let bg=even?'FFF7F0FF':'FFFFFFFF';
+      if(ci===1)cell.font={name:'Calibri',size:10,color:{argb:'FF888888'}};
+      else if(ci===2)cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FF0a2463'}};
+      else if(ci===3)cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FFB85C00'}};
+      else if(ci===headers.length){bg=even?'FFEDE0FF':'FFF7F0FF';cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FF7b2ff7'}}}
+      else cell.font={name:'Calibri',size:10,color:{argb:cell.value>0?'FF07a37a':'FF999999'}};
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:bg}};
+      cell.alignment={vertical:'middle'};
+      cell.border={top:{style:'hair'},bottom:{style:'hair'},left:{style:'hair'},right:{style:'hair'}};
+    });
+  });
+  // Total row
+  if(rows.length){
+    const colTotals=headers.map((_,i)=>{if(i<4)return i===0?'TOTAL':'';return rows.reduce((s,r)=>s+(parseFloat(r[i])||0),0)});
+    const tRow=ws.addRow(colTotals);tRow.height=28;
+    tRow.eachCell((cell,ci)=>{cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF7b2ff7'}};cell.font={name:'Calibri',size:11,bold:true,color:{argb:'FFFFFFFF'}};cell.alignment={horizontal:'center',vertical:'middle'};cell.border={top:{style:'medium'},bottom:{style:'medium'},left:{style:'thin'},right:{style:'thin'}}});
+  }
+  ws.columns=headers.map((h,i)=>{if(i===1)return{width:24};if(i===2)return{width:18};return{width:Math.max(String(h).length+2,13)}});
+  ws.views=[{state:'frozen',ySplit:3,xSplit:0,topLeftCell:'A4'}];
 }
 
 /* ===== MONTH HELPERS ===== */
@@ -634,44 +1169,9 @@ function renderConsolidated(){
 }
 
 /* ====================================================================
-   SMART IMPORT ENGINE — Matches exact Excel format
-   Headers: S.No | Date | Name | Contact No | Truck No | DL No | Page No |
-            Opening Bal | Settlement | Net Salary | Paid Salary | Outstanding | Remarks
-   Date format: DD.MM.YYYY
+   SMART IMPORT ENGINE
 ====================================================================*/
-
-const DAILY_HEADER_MAP = {
-  // Excel Header (lowercase) → internal field name
-  's.no': 'sno',
-  'sno': 'sno',
-  's no': 'sno',
-  'date': 'date',
-  'name': 'name',
-  'driver name': 'name',
-  'contact no': 'contact',
-  'contact': 'contact',
-  'mobile': 'contact',
-  'truck no': 'truck',
-  'truck': 'truck',
-  'vehicle no': 'truck',
-  'dl no': 'dl',
-  'dl': 'dl',
-  'driving licence': 'dl',
-  'page no': 'pageno',
-  'page': 'pageno',
-  'opening bal': 'opening',
-  'opening balance': 'opening',
-  'opening': 'opening',
-  'note cls salary': 'opening',
-  'settlement': 'settlement',
-  'net salary': 'netsalary',
-  'paid salary': 'paid',
-  'paid': 'paid',
-  'outstanding': 'outstanding',
-  'outstanding salary': 'outstanding',
-  'remarks': 'remarks',
-  'notes': 'remarks',
-};
+const DAILY_HEADER_MAP={'s.no':'sno','sno':'sno','s no':'sno','date':'date','name':'name','driver name':'name','contact no':'contact','contact':'contact','mobile':'contact','truck no':'truck','truck':'truck','vehicle no':'truck','dl no':'dl','dl':'dl','driving licence':'dl','page no':'pageno','page':'pageno','opening bal':'opening','opening balance':'opening','opening':'opening','note cls salary':'opening','settlement':'settlement','net salary':'netsalary','paid salary':'paid','paid':'paid','outstanding':'outstanding','outstanding salary':'outstanding','remarks':'remarks','notes':'remarks'};
 
 function openImportModal(){resetImport();document.getElementById('importModal').classList.add('show')}
 function resetImport(){
@@ -691,166 +1191,71 @@ function processFile(file){
   reader.onload=function(e){
     try{
       const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array',cellDates:false});
-      // Process all sheets, collect all rows
-      let allParsed=[];
-      let colMapUsed={};
-      let totalSheets=0;
-      let warnings=[];
-
+      let allParsed=[],colMapUsed={},totalSheets=0,warnings=[];
       wb.SheetNames.forEach(sn=>{
         const ws=wb.Sheets[sn];
-        // Use raw mode to preserve numeric dates and values
         const raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:'',raw:true});
         if(!raw||raw.length<2)return;
-
-        // Find the header row — look for a row containing "Name" and at least 5 columns
         let hdrRow=-1;
         for(let i=0;i<Math.min(raw.length,10);i++){
           const r=raw[i].map(c=>String(c).trim().toLowerCase());
-          if(r.some(c=>c==='name'||c==='driver name')&&r.filter(c=>c!=='').length>=4){
-            hdrRow=i;break;
-          }
+          if(r.some(c=>c==='name'||c==='driver name')&&r.filter(c=>c!=='').length>=4){hdrRow=i;break}
         }
-        if(hdrRow<0){
-          // Try fallback: look for S.No + Date
-          for(let i=0;i<Math.min(raw.length,10);i++){
-            const r=raw[i].map(c=>String(c).trim().toLowerCase());
-            if((r.some(c=>c==='s.no'||c==='sno'||c==='s no'))&&r.some(c=>c==='date')){
-              hdrRow=i;break;
-            }
-          }
-        }
+        if(hdrRow<0){for(let i=0;i<Math.min(raw.length,10);i++){const r=raw[i].map(c=>String(c).trim().toLowerCase());if((r.some(c=>c==='s.no'||c==='sno'||c==='s no'))&&r.some(c=>c==='date')){hdrRow=i;break}}}
         if(hdrRow<0){warnings.push(`Sheet "${sn}": Could not find header row.`);return}
-
         const headers=raw[hdrRow].map(c=>String(c).trim());
-        // Build column index map
         const cm={};
-        headers.forEach((h,idx)=>{
-          const hl=h.toLowerCase().replace(/\s+/g,' ').trim();
-          if(DAILY_HEADER_MAP[hl]){
-            const field=DAILY_HEADER_MAP[hl];
-            // For fields that can appear multiple times (like settlement), keep first
-            if(!cm[field])cm[field]=idx;
-          }
-        });
-
+        headers.forEach((h,idx)=>{const hl=h.toLowerCase().replace(/\s+/g,' ').trim();if(DAILY_HEADER_MAP[hl]){const field=DAILY_HEADER_MAP[hl];if(!cm[field])cm[field]=idx}});
         if(!cm.name){warnings.push(`Sheet "${sn}": No "Name" column found, skipped.`);return}
-        colMapUsed=cm;
-        totalSheets++;
-
-        // Parse data rows
+        colMapUsed=cm;totalSheets++;
         let sheetCount=0;
         for(let i=hdrRow+1;i<raw.length;i++){
           const row=raw[i];
-          // Skip empty rows
           const nonEmpty=row.filter(c=>c!==null&&c!==undefined&&String(c).trim()!=='').length;
           if(nonEmpty<2)continue;
-
           const name=cleanStr(row[cm.name]);
           if(!name||name.toLowerCase()==='total'||name.toLowerCase()==='prepared by'||name.toLowerCase()==='verified by')continue;
-
-          // Skip if looks like a header repeat
           if(name.toLowerCase()==='name'||name.toLowerCase()==='driver name')continue;
-
-          // Parse date
           const rawDate=cm.date!=null?row[cm.date]:'';
           const parsedDate=parseDate(rawDate);
-
-          // Parse numeric fields
           const opening=cm.opening!=null?parseNum(row[cm.opening]):0;
           const settlement=cm.settlement!=null?parseNum(row[cm.settlement]):0;
           const paid=cm.paid!=null?parseNum(row[cm.paid]):0;
           const outstanding=cm.outstanding!=null?parseNum(row[cm.outstanding]):null;
-          // Net salary: if present, use it; else calculate
           let netsalary=cm.netsalary!=null?parseNum(row[cm.netsalary]):0;
           if(!netsalary)netsalary=opening+settlement;
-          // Outstanding: if present use it; else calculate
           let outFinal=outstanding!==null?outstanding:(netsalary-paid);
-
-          allParsed.push({
-            id:uid(),
-            date:parsedDate,
-            name:name,
-            contact:cleanStr(cm.contact!=null?row[cm.contact]:''),
-            truck:cleanStr(cm.truck!=null?row[cm.truck]:''),
-            dl:cleanStr(cm.dl!=null?row[cm.dl]:''),
-            pageno:cleanStr(cm.pageno!=null?row[cm.pageno]:''),
-            opening:opening||'',
-            settlement:settlement||'',
-            netsalary:netsalary||'',
-            paid:paid||'',
-            outstanding:outFinal||'',
-            remarks:cleanStr(cm.remarks!=null?row[cm.remarks]:'')
-          });
+          allParsed.push({id:uid(),date:parsedDate,name,contact:cleanStr(cm.contact!=null?row[cm.contact]:''),truck:cleanStr(cm.truck!=null?row[cm.truck]:''),dl:cleanStr(cm.dl!=null?row[cm.dl]:''),pageno:cleanStr(cm.pageno!=null?row[cm.pageno]:''),opening:opening||'',settlement:settlement||'',netsalary:netsalary||'',paid:paid||'',outstanding:outFinal||'',remarks:cleanStr(cm.remarks!=null?row[cm.remarks]:'')});
           sheetCount++;
         }
         if(sheetCount===0)warnings.push(`Sheet "${sn}": No valid data rows found.`);
       });
-
       if(!allParsed.length){showToast('No valid rows found in file!','error');return}
-
       importParsed=allParsed;
-
-      // Build user-friendly column map display
       const fieldLabels={sno:'S.No',date:'Date',name:'Driver Name',contact:'Contact No',truck:'Truck No',dl:'DL No',pageno:'Page No',opening:'Opening Bal',settlement:'Settlement',netsalary:'Net Salary',paid:'Paid Salary',outstanding:'Outstanding',remarks:'Remarks'};
-
-      // Show stats
       document.getElementById('importStats').innerHTML=`
         <div class="import-stat blue"><div class="isl">Records Found</div><div class="isv">${allParsed.length}</div></div>
         <div class="import-stat green"><div class="isl">Sheets Read</div><div class="isv">${totalSheets}</div></div>
         <div class="import-stat sky"><div class="isl">Columns Mapped</div><div class="isv">${Object.keys(colMapUsed).length}</div></div>
         <div class="import-stat orange"><div class="isl">Target Module</div><div class="isv" style="font-size:12px">Daily Salary</div></div>`;
-
-      // Build mapping grid
       const allFields=['date','name','contact','truck','dl','pageno','opening','settlement','netsalary','paid','outstanding','remarks'];
-      document.getElementById('mappingGrid').innerHTML=allFields.map(f=>{
-        const mapped=colMapUsed[f]!=null;
-        return`<div class="col-map-row ${mapped?'matched':'skipped'}">
-          <span class="col-map-src">${mapped?`Col ${colMapUsed[f]+1}`:'-'}</span>
-          <span class="col-map-arrow">→</span>
-          <span class="col-map-dest">${fieldLabels[f]}</span>
-        </div>`;
-      }).join('');
-
-      // Preview table
+      document.getElementById('mappingGrid').innerHTML=allFields.map(f=>{const mapped=colMapUsed[f]!=null;return`<div class="col-map-row ${mapped?'matched':'skipped'}"><span class="col-map-src">${mapped?`Col ${colMapUsed[f]+1}`:'-'}</span><span class="col-map-arrow">→</span><span class="col-map-dest">${fieldLabels[f]}</span></div>`}).join('');
       const previewRows=allParsed.slice(0,8);
       let ptHTML=`<thead><tr><th>Date</th><th>Name</th><th>Contact</th><th>Truck No</th><th>DL No</th><th>Page No</th><th>Opening</th><th>Settlement</th><th>Net Salary</th><th>Paid</th><th>Outstanding</th><th>Remarks</th></tr></thead><tbody>`;
-      previewRows.forEach(r=>{
-        const outColor=parseFloat(r.outstanding)>0?'color:var(--accent);font-weight:700':'color:#07a37a;font-weight:700';
-        ptHTML+=`<tr>
-          <td class="mono">${displayDate(r.date)||'-'}</td>
-          <td><strong>${r.name}</strong></td>
-          <td>${r.contact||'-'}</td>
-          <td style="color:#c47a2e;font-weight:600">${r.truck||'-'}</td>
-          <td>${r.dl||'-'}</td>
-          <td>${r.pageno||'-'}</td>
-          <td>₹${fmt(r.opening)}</td>
-          <td style="color:var(--primary2);font-weight:600">₹${fmt(r.settlement)}</td>
-          <td><strong>₹${fmt(r.netsalary)}</strong></td>
-          <td style="color:#07a37a;font-weight:600">₹${fmt(r.paid)}</td>
-          <td style="${outColor}">₹${fmt(r.outstanding)}</td>
-          <td>${r.remarks||'-'}</td>
-        </tr>`;
-      });
+      previewRows.forEach(r=>{const outColor=parseFloat(r.outstanding)>0?'color:var(--accent);font-weight:700':'color:#07a37a;font-weight:700';ptHTML+=`<tr><td class="mono">${displayDate(r.date)||'-'}</td><td><strong>${r.name}</strong></td><td>${r.contact||'-'}</td><td style="color:#c47a2e;font-weight:600">${r.truck||'-'}</td><td>${r.dl||'-'}</td><td>${r.pageno||'-'}</td><td>₹${fmt(r.opening)}</td><td style="color:var(--primary2);font-weight:600">₹${fmt(r.settlement)}</td><td><strong>₹${fmt(r.netsalary)}</strong></td><td style="color:#07a37a;font-weight:600">₹${fmt(r.paid)}</td><td style="${outColor}">₹${fmt(r.outstanding)}</td><td>${r.remarks||'-'}</td></tr>`});
       ptHTML+='</tbody>';
       document.getElementById('previewTable').innerHTML=ptHTML;
-
-      // Warnings
       const wb2=document.getElementById('importWarnBanner');
-      if(warnings.length){wb2.style.display='flex';document.getElementById('importWarnText').textContent=warnings.join(' | ')}
-      else{wb2.style.display='none'}
-
+      if(warnings.length){wb2.style.display='flex';document.getElementById('importWarnText').textContent=warnings.join(' | ')}else{wb2.style.display='none'}
       document.getElementById('importCount').textContent=allParsed.length;
       document.getElementById('importStep1').style.display='none';
       document.getElementById('importStep2').style.display='block';
       document.getElementById('btnBack').style.display='inline-flex';
       document.getElementById('btnImport').style.display='inline-flex';
-
     }catch(err){showToast('Error reading file: '+err.message,'error');console.error(err)}
   };
   reader.readAsArrayBuffer(file);
 }
-
 function doImport(){
   if(!importParsed.length){showToast('No data to import!','error');return}
   entries=entries.concat(importParsed);
