@@ -8,6 +8,7 @@
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 :root{--primary:#0a2463;--primary2:#1e4db7;--accent:#e84855;--accent2:#ff6b35;--gold:#f4a261;--emerald:#06d6a0;--sky:#48cae4;--purple:#7b2ff7;--purple2:#a855f7;--bg:#f0f2f8;--surface:#fff;--surface2:#f7f9ff;--border:#dde3f0;--text:#0a1628;--text2:#4a5578;--text3:#8e98b5;--header-h:62px;--sidebar-w:230px;--radius:12px;--radius-sm:8px;--shadow:0 2px 16px rgba(10,36,99,.08);--shadow-md:0 6px 32px rgba(10,36,99,.14)}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -69,8 +70,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .btn-icon{background:none;border:none;cursor:pointer;padding:5px 7px;border-radius:6px;color:var(--text2);font-size:13px;transition:all .1s}
 .btn-icon:hover{background:rgba(30,77,183,.08);color:var(--primary2)}
 .btn-icon.del:hover{background:rgba(232,72,85,.08);color:var(--accent)}
-.btn-icon.save-map{color:var(--purple2)}
-.btn-icon.save-map:hover{background:rgba(123,47,247,.1);color:var(--purple)}
 .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:13px}
 .form-group{display:flex;flex-direction:column;gap:5px}
 .form-label{font-size:11px;font-weight:700;color:var(--text2);letter-spacing:.3px;text-transform:uppercase}
@@ -140,15 +139,6 @@ tbody td.mono{font-family:'JetBrains Mono',monospace;font-size:11.5px}
 .settlement-header-strip{background:linear-gradient(135deg,var(--purple),var(--purple2));border-radius:var(--radius);padding:18px 22px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
 .settlement-header-strip .shs-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:#fff}
 .settlement-header-strip .shs-sub{font-size:12px;color:rgba(255,255,255,.7);margin-top:2px}
-.settlement-date-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-bottom:18px}
-.sdate-card{background:var(--surface);border-radius:var(--radius);border:2px solid var(--border);padding:16px 18px;box-shadow:var(--shadow)}
-.sdate-card.active-col{border-color:var(--purple2);box-shadow:0 0 0 3px rgba(123,47,247,.1)}
-.sdate-card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.sdate-label{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:var(--primary)}
-.sdate-badge{font-size:9.5px;font-weight:700;padding:3px 10px;border-radius:20px;background:rgba(123,47,247,.12);color:var(--purple2)}
-.sdate-input-wrap{display:flex;align-items:center;gap:8px}
-.sdate-input-wrap input[type=date]{flex:1;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:8px 11px;font-size:13px;font-family:'Inter',sans-serif;color:var(--text);background:var(--surface);outline:none}
-.sdate-input-wrap input[type=date]:focus{border-color:var(--purple2);box-shadow:0 0 0 3px rgba(123,47,247,.1)}
 .settle-table{width:100%;border-collapse:collapse;font-size:12.5px}
 .settle-table thead th{background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;font-size:10px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;padding:10px 10px;white-space:nowrap}
 .settle-table thead th:first-child{border-radius:8px 0 0 0}
@@ -159,21 +149,29 @@ tbody td.mono{font-family:'JetBrains Mono',monospace;font-size:11.5px}
 .settle-table tbody td{padding:8px 10px;vertical-align:middle}
 .settle-amt-input{border:1.5px solid var(--border);border-radius:6px;padding:6px 9px;font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--text);background:var(--surface);outline:none;width:100%;max-width:130px;transition:border .15s}
 .settle-amt-input:focus{border-color:var(--purple2);box-shadow:0 0 0 2px rgba(123,47,247,.1)}
-.settle-amt-input.has-value{border-color:var(--emerald);background:rgba(6,214,160,.05);color:#07a37a;font-weight:700}
-.save-mapping-bar{background:linear-gradient(135deg,rgba(123,47,247,.07),rgba(168,85,247,.05));border:2px dashed rgba(123,47,247,.3);border-radius:var(--radius);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:18px}
-.smb-text{font-size:13px;font-weight:600;color:var(--purple)}
-.smb-sub{font-size:11.5px;color:var(--text3);margin-top:2px}
+.settle-dl-input{border:1.5px solid var(--purple2);border-radius:6px;padding:6px 9px;font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--text);background:rgba(123,47,247,.04);outline:none;width:100%;max-width:110px;transition:border .15s}
+.settle-dl-input:focus{border-color:var(--purple);box-shadow:0 0 0 2px rgba(123,47,247,.15)}
 .settle-sum-row{background:linear-gradient(135deg,var(--purple),var(--purple2));border-radius:0 0 8px 8px}
 .settle-sum-row td{color:#fff;font-weight:700;padding:10px 10px!important;font-size:12px}
 .dl-btn-wrap{display:flex;gap:8px;flex-wrap:wrap}
 
-/* IMAGE DOWNLOAD STYLES */
-.settle-print-area{background:#fff;border-radius:var(--radius);overflow:hidden}
-.settle-print-header{background:linear-gradient(135deg,#0a2463,#1e4db7);padding:20px 28px;color:#fff}
-.settle-print-header h2{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;letter-spacing:.5px}
-.settle-print-header p{font-size:12px;color:rgba(255,255,255,.7);margin-top:4px}
-.settle-print-sub{background:linear-gradient(135deg,var(--purple),var(--purple2));padding:10px 28px;color:#fff;font-size:12px;font-weight:600}
-.settle-print-body{padding:16px}
+/* UPLOAD ZONE */
+.upload-zone{border:2.5px dashed rgba(123,47,247,.35);border-radius:var(--radius);background:linear-gradient(135deg,rgba(123,47,247,.04),rgba(168,85,247,.03));padding:22px 24px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;cursor:pointer;transition:all .2s}
+.upload-zone:hover{border-color:var(--purple2);background:linear-gradient(135deg,rgba(123,47,247,.08),rgba(168,85,247,.06))}
+.upload-zone-left{display:flex;align-items:center;gap:14px}
+.upload-zone-icon{width:48px;height:48px;background:linear-gradient(135deg,var(--purple),var(--purple2));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff;flex-shrink:0}
+.upload-zone-text .uzt-main{font-size:13px;font-weight:700;color:var(--purple)}
+.upload-zone-text .uzt-sub{font-size:11.5px;color:var(--text3);margin-top:3px}
+.upload-zone-text .uzt-cols{font-size:10.5px;color:var(--purple2);margin-top:5px;font-family:'JetBrains Mono',monospace;background:rgba(123,47,247,.08);padding:4px 8px;border-radius:5px;display:inline-block}
+.uploaded-file-badge{display:flex;align-items:center;gap:8px;background:rgba(6,214,160,.1);border:1.5px solid var(--emerald);border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;color:#07a37a}
+.upload-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:16px}
+.upload-stat{padding:10px 12px;border-radius:8px;background:var(--surface);border:1.5px solid var(--border)}
+.upload-stat .usl{font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+.upload-stat .usv{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;margin-top:2px}
+.upload-stat.purple .usv{color:var(--purple2)}
+.upload-stat.green .usv{color:#07a37a}
+.upload-stat.sky .usv{color:#0096c7}
+.upload-stat.gold .usv{color:#c47a2e}
 
 /* IMPORT MODAL STYLES */
 .import-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:12px 0}
@@ -190,8 +188,6 @@ tbody td.mono{font-family:'JetBrains Mono',monospace;font-size:11.5px}
 .col-map-arrow{color:var(--primary2);font-size:11px;flex-shrink:0}
 .col-map-dest{font-weight:700;color:var(--primary);white-space:nowrap}
 .col-map-row.matched{border-color:var(--emerald);background:rgba(6,214,160,.05)}
-.col-map-row.calc{border-color:var(--sky);background:rgba(72,202,228,.06)}
-.col-map-row.calc .col-map-dest{color:#0096c7}
 .col-map-row.skipped{opacity:.5}
 .preview-scroll{overflow-x:auto;max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:6px;margin-top:8px}
 .import-preview-table{width:100%;border-collapse:collapse;font-size:11px}
@@ -199,6 +195,8 @@ tbody td.mono{font-family:'JetBrains Mono',monospace;font-size:11.5px}
 .import-preview-table td{padding:5px 8px;border-bottom:1px solid var(--border);white-space:nowrap}
 .import-preview-table tr:nth-child(even) td{background:var(--surface2)}
 .warn-banner{background:rgba(255,107,53,.08);border:1.5px solid rgba(255,107,53,.3);border-radius:var(--radius-sm);padding:10px 14px;font-size:12px;color:var(--accent2);margin-bottom:12px;display:flex;align-items:flex-start;gap:8px}
+.autofill-banner{background:linear-gradient(135deg,rgba(6,214,160,.08),rgba(30,77,183,.06));border:1.5px solid rgba(6,214,160,.3);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:14px;display:none;align-items:center;gap:10px;font-size:12px;font-weight:600;color:#07a37a}
+.autofill-banner.show{display:flex}
 
 /* AUTOCOMPLETE */
 .autocomplete-wrap{position:relative}
@@ -213,13 +211,10 @@ tbody td.mono{font-family:'JetBrains Mono',monospace;font-size:11.5px}
 .ac-badge{display:inline-block;font-size:9px;font-weight:700;padding:1px 6px;border-radius:10px;margin-left:5px}
 .ac-badge.excel{background:rgba(6,214,160,.15);color:#07a37a}
 .ac-badge.last{background:rgba(72,202,228,.15);color:#0096c7}
-.autofill-banner{background:linear-gradient(135deg,rgba(6,214,160,.08),rgba(30,77,183,.06));border:1.5px solid rgba(6,214,160,.3);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:14px;display:none;align-items:center;gap:10px;font-size:12px;font-weight:600;color:#07a37a}
-.autofill-banner.show{display:flex}
-.autofill-banner i{font-size:16px}
 .opening-info{font-size:10.5px;color:var(--text3);margin-top:3px;font-style:italic}
 .opening-info.has-data{color:#07a37a;font-weight:600;font-style:normal}
 
-@media(max-width:768px){.sidebar{display:none}.main-content,.footer{margin-left:0}.topbar{padding:0 14px}.consol-summary{grid-template-columns:1fr}.col-map-grid{grid-template-columns:1fr}.settlement-date-cols{grid-template-columns:1fr}}
+@media(max-width:768px){.sidebar{display:none}.main-content,.footer{margin-left:0}.topbar{padding:0 14px}.consol-summary{grid-template-columns:1fr}.col-map-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -253,7 +248,7 @@ tbody td.mono{font-family:'JetBrains Mono',monospace;font-size:11.5px}
     <div class="stat-cards" id="homeStat"></div>
     <div class="module-cards">
       <div class="module-card" onclick="showSection('daily')"><div class="mc-stripe" style="background:linear-gradient(90deg,var(--primary),var(--primary2))"></div><div class="mc-icon">📅</div><div class="mc-name">Daily Salary</div><div class="mc-desc">Day-wise driver salary with opening balance, settlement & outstanding tracking.</div></div>
-      <div class="module-card" onclick="showSection('settlement')"><div class="mc-stripe" style="background:linear-gradient(90deg,var(--purple),var(--purple2))"></div><div class="mc-icon">💰</div><div class="mc-name">Daily Settlement</div><div class="mc-desc">Enter settlement amounts for multiple dates per driver. Save mapping to auto-assign into Daily Salary.</div></div>
+      <div class="module-card" onclick="showSection('settlement')"><div class="mc-stripe" style="background:linear-gradient(90deg,var(--purple),var(--purple2))"></div><div class="mc-icon">💰</div><div class="mc-name">Daily Settlement</div><div class="mc-desc">Upload settlement Excel file with Vehicle, Driver, Dates & Balance. DL No entered manually.</div></div>
       <div class="module-card" onclick="showSection('monthwise')"><div class="mc-stripe" style="background:linear-gradient(90deg,var(--emerald),#07a37a)"></div><div class="mc-icon">📆</div><div class="mc-name">Month Wise View</div><div class="mc-desc">Monthly summary per driver.</div></div>
       <div class="module-card" onclick="showSection('mileage')"><div class="mc-stripe" style="background:linear-gradient(90deg,var(--gold),var(--accent2))"></div><div class="mc-icon">🛣️</div><div class="mc-name">Mileage</div><div class="mc-desc">Trip-wise mileage per truck — Trip 1, 2, 3 & Average.</div></div>
       <div class="module-card" onclick="showSection('consolidated')"><div class="mc-stripe" style="background:linear-gradient(90deg,var(--accent),var(--accent2))"></div><div class="mc-icon">📊</div><div class="mc-name">Consolidated Salary</div><div class="mc-desc">Full consolidated report across all daily entries.</div></div>
@@ -273,40 +268,69 @@ tbody td.mono{font-family:'JetBrains Mono',monospace;font-size:11.5px}
     <div class="card-box" style="padding:0 0 6px"><div class="table-wrap"><table><thead><tr><th>S.No</th><th>Date</th><th>Name</th><th>Contact</th><th>Truck No</th><th>DL No</th><th>Page No</th><th>Opening Bal</th><th>Settlement</th><th>Net Salary</th><th>Paid Salary</th><th>Outstanding</th><th>Remarks</th><th>Action</th></tr></thead><tbody id="dailyBody"></tbody></table></div></div>
   </div>
 
-  <!-- DAILY SETTLEMENT -->
+  <!-- DAILY SETTLEMENT (NEW) -->
   <div class="section" id="section-settlement">
     <div class="settlement-header-strip">
       <div>
         <div class="shs-title"><i class="fas fa-file-invoice-dollar" style="margin-right:8px"></i>Daily Settlement</div>
-        <div class="shs-sub">Enter settlement amounts per driver with multiple settlement dates. Save Mapping → auto-assigns to Daily Salary.</div>
+        <div class="shs-sub">Upload Excel file → Vehicle, Driver, Created Date, Start Date, End Date, Balance To Pay. Enter DL No manually.</div>
       </div>
       <div class="dl-btn-wrap">
         <button class="btn btn-emerald" onclick="exportSettlementExcel()"><i class="fas fa-file-excel"></i> Export Excel</button>
         <button class="btn" style="background:#fff;color:var(--purple);border:1.5px solid var(--purple2);font-weight:700" onclick="downloadSettlementImage()"><i class="fas fa-image"></i> Download Image</button>
-        <button class="btn btn-primary" onclick="openAddSettlementModal()"><i class="fas fa-plus"></i> Add Row</button>
+        <button class="btn btn-danger" onclick="clearSettlementData()"><i class="fas fa-trash"></i> Clear Data</button>
       </div>
     </div>
 
-    <!-- Settlement Date Column Config -->
-    <div class="card-box" style="padding:16px 20px;margin-bottom:14px">
-      <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:12px;display:flex;align-items:center;gap:8px"><i class="fas fa-calendar-check" style="color:var(--purple2)"></i> Settlement Date Columns — Set dates manually</div>
-      <div class="settlement-date-cols" id="settleDateCols"></div>
+    <!-- Upload Zone -->
+    <div class="upload-zone" id="settleUploadZone" onclick="document.getElementById('settleFileInput').click()"
+      ondragover="event.preventDefault();document.getElementById('settleUploadZone').style.borderColor='var(--purple)'"
+      ondragleave="document.getElementById('settleUploadZone').style.borderColor='rgba(123,47,247,.35)'"
+      ondrop="handleSettleDrop(event)">
+      <div class="upload-zone-left">
+        <div class="upload-zone-icon"><i class="fas fa-file-excel"></i></div>
+        <div class="upload-zone-text">
+          <div class="uzt-main">Upload Settlement Excel File</div>
+          <div class="uzt-sub">Click here or drag & drop your .xlsx / .xls file</div>
+          <div class="uzt-cols">Expected: Vehicle | Driver | Created Date | Start Date | End Date | Balance To Pay</div>
+        </div>
+      </div>
+      <div id="settleUploadedBadge" style="display:none" class="uploaded-file-badge">
+        <i class="fas fa-check-circle"></i><span id="settleUploadedName">File loaded</span>
+      </div>
+      <input type="file" id="settleFileInput" accept=".xlsx,.xls" style="display:none" onchange="handleSettleFileSelect(event)">
     </div>
 
-    <!-- Save Mapping Bar -->
-    <div class="save-mapping-bar">
-      <div>
-        <div class="smb-text"><i class="fas fa-magic" style="margin-right:6px"></i>Save Mapping → Auto-assign to Daily Salary</div>
-        <div class="smb-sub">Click "Save Mapping" to push all settlement entries to the Daily Salary module automatically.</div>
-      </div>
-      <button class="btn btn-purple" onclick="saveSettlementMapping()"><i class="fas fa-save"></i> Save Mapping</button>
+    <!-- Upload Stats -->
+    <div id="settleUploadStats" style="display:none" class="upload-stats"></div>
+
+    <!-- Info about DL No -->
+    <div class="info-banner" id="settleDLInfo" style="display:none">
+      <i class="fas fa-info-circle"></i>
+      <div><strong>DL No column</strong> — Type the DL number directly in the table below for each driver. All other columns are auto-filled from the uploaded Excel file.</div>
     </div>
 
     <!-- Settlement Table -->
     <div class="card-box" style="padding:0 0 6px" id="settlePrintArea">
-      <div class="table-wrap">
+      <div id="settleEmptyState" style="padding:40px;text-align:center;color:var(--text3)">
+        <i class="fas fa-cloud-upload-alt" style="font-size:40px;opacity:.3;margin-bottom:12px;display:block;color:var(--purple2)"></i>
+        <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--purple2)">Upload an Excel file to get started</div>
+        <div style="font-size:12px;margin-top:6px">Settlement data will appear here after upload</div>
+      </div>
+      <div class="table-wrap" id="settleTableWrap" style="display:none">
         <table class="settle-table" id="settleTable">
-          <thead id="settleTableHead"></thead>
+          <thead>
+            <tr>
+              <th style="width:40px">S.No</th>
+              <th>Vehicle (Truck No)</th>
+              <th>Driver Name</th>
+              <th>DL No <span style="font-weight:400;font-size:9px;opacity:.8">(Manual)</span></th>
+              <th>Settlement Date <span style="font-weight:400;font-size:9px;opacity:.8">(Created Date)</span></th>
+              <th>Start Date</th>
+              <th>End Date</th>
+              <th>Balance To Pay</th>
+            </tr>
+          </thead>
           <tbody id="settleBody"></tbody>
         </table>
       </div>
@@ -378,37 +402,6 @@ tbody td.mono{font-family:'JetBrains Mono',monospace;font-size:11.5px}
   </div>
 </div>
 
-<!-- ADD SETTLEMENT ROW MODAL -->
-<div class="modal-overlay" id="settlementModal">
-  <div class="modal-box" style="max-width:560px">
-    <div class="modal-title" style="color:var(--purple)"><i class="fas fa-file-invoice-dollar"></i> <span id="settleModalTitle">Add Settlement Row</span></div>
-    <div class="form-grid">
-      <div class="form-group">
-        <label class="form-label"><i class="fas fa-hashtag" style="color:var(--purple2);margin-right:4px"></i>S.No</label>
-        <input type="number" class="form-control" id="sf_sno" placeholder="Auto">
-      </div>
-      <div class="form-group">
-        <label class="form-label"><i class="fas fa-user" style="color:var(--primary2);margin-right:4px"></i>Driver Name *</label>
-        <div class="autocomplete-wrap">
-          <input type="text" class="form-control" id="sf_name" placeholder="Type name..." autocomplete="off" oninput="onSettleNameInput(this.value)" onkeydown="acKeyNav(event,'settleNameDropdown')" onfocus="onSettleNameInput(this.value)">
-          <div class="autocomplete-dropdown" id="settleNameDropdown"></div>
-        </div>
-      </div>
-      <div class="form-group">
-        <label class="form-label"><i class="fas fa-truck" style="color:var(--gold);margin-right:4px"></i>Truck No</label>
-        <input type="text" class="form-control" id="sf_truck" placeholder="Truck Number">
-      </div>
-      <div class="form-group">
-        <label class="form-label">DL No</label>
-        <input type="text" class="form-control" id="sf_dl" placeholder="DL Number">
-      </div>
-    </div>
-    <!-- Settlement date amounts will be shown here dynamically -->
-    <div id="sf_dateAmounts" style="margin-top:14px"></div>
-    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('settlementModal')">Cancel</button><button class="btn btn-purple" onclick="saveSettlementRow()"><i class="fas fa-save"></i> Save Row</button></div>
-  </div>
-</div>
-
 <!-- MILEAGE MODAL -->
 <div class="modal-overlay" id="mileageModal">
   <div class="modal-box">
@@ -425,7 +418,7 @@ tbody td.mono{font-family:'JetBrains Mono',monospace;font-size:11.5px}
   </div>
 </div>
 
-<!-- IMPORT MODAL -->
+<!-- IMPORT MODAL (Daily Salary) -->
 <div class="modal-overlay" id="importModal">
   <div class="modal-box" style="max-width:820px">
     <div class="modal-title"><i class="fas fa-file-import"></i> Import Excel — Smart Column Mapping</div>
@@ -466,9 +459,6 @@ tbody td.mono{font-family:'JetBrains Mono',monospace;font-size:11.5px}
 
 <div class="toast" id="toast"><i class="fas fa-check-circle"></i> <span id="toastMsg"></span></div>
 
-<!-- html2canvas for image download -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
 <script>
 /* ====================================================================
    EXCEL MASTER DATABASE — 284 drivers
@@ -479,20 +469,14 @@ const EXCEL_DB=[{"name":"SIVAKUMAR","truck":"KA 01 AK 2266","dl":"1376","page":"
 const MONTHS=['Feb-25','Mar-25','Apr-25','May-25','Jun-25','Jul-25','Aug-25','Sep-25','Oct-25','Nov-25','Dec-25','Jan-26','Feb-26','Mar-26','Apr-26'];
 let editId=null,selectedMonth='Mar-26',mileageMonth='Mar-26';
 let importParsed=[],importColMap={};
-// Settlement state
-let settleDateCols=[
-  {id:'sdc1',label:'Settlement Date 1',date:''},
-  {id:'sdc2',label:'Settlement Date 2',date:''}
-];
-let editSettleId=null;
+// Settlement data — each row: {id, vehicle, driver, dl, settlementDate, startDate, endDate, balanceToPay}
+let settlementData=[];
 
 function ld(k){try{return JSON.parse(localStorage.getItem(k))||[]}catch{return[]}}
 function sv(k,d){localStorage.setItem(k,JSON.stringify(d))}
-let entries=ld('mmrw_entries'),mileageData=ld('mmrw_mileage'),settlementData=ld('mmrw_settlement');
-
-// Load saved settlement date cols if any
-const savedSDC=localStorage.getItem('mmrw_settleDateCols');
-if(savedSDC){try{settleDateCols=JSON.parse(savedSDC)}catch{}}
+let entries=ld('mmrw_entries'),mileageData=ld('mmrw_mileage');
+// Load settlement data (new format)
+try{const sd=localStorage.getItem('mmrw_settlement_v2');if(sd)settlementData=JSON.parse(sd)||[];}catch{settlementData=[]}
 
 document.getElementById('topDate').textContent=new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
 
@@ -550,11 +534,7 @@ function renderHome(){
   const net=entries.reduce((s,e)=>s+(parseFloat(e.netsalary)||0),0);
   const paid=entries.reduce((s,e)=>s+(parseFloat(e.paid)||0),0);
   const out=entries.reduce((s,e)=>s+(parseFloat(e.outstanding)||0),0);
-  const settleTotal=settlementData.reduce((s,r)=>{
-    return s+settleDateCols.reduce((ss,col)=>{
-      return ss+(parseFloat(r['amt_'+col.id])||0);
-    },0);
-  },0);
+  const settleTotal=settlementData.reduce((s,r)=>s+(parseFloat(r.balanceToPay)||0),0);
   document.getElementById('homeStat').innerHTML=`
     <div class="stat-card blue"><div class="stat-label">Total Entries</div><div class="stat-val">${entries.length}</div></div>
     <div class="stat-card red"><div class="stat-label">Net Salary</div><div class="stat-val">₹${fmt(net)}</div></div>
@@ -565,7 +545,7 @@ function renderHome(){
 }
 
 /* ===== AUTOCOMPLETE ENGINE ===== */
-let acHighlight={nameDropdown:-1,truckDropdown:-1,settleNameDropdown:-1};
+let acHighlight={nameDropdown:-1,truckDropdown:-1};
 function norm(s){return String(s||'').toLowerCase().replace(/\s+/g,' ').trim()}
 function searchByName(q){if(!q||q.length<1)return[];const nq=norm(q);return EXCEL_DB.filter(d=>norm(d.name).includes(nq)).slice(0,10)}
 function searchByTruck(q){if(!q||q.length<1)return[];const nq=norm(q);return EXCEL_DB.filter(d=>norm(d.truck).includes(nq)).slice(0,10)}
@@ -587,14 +567,9 @@ function applyAutofill(record){
   else{openEl.value='';infoEl.textContent='No opening balance found';infoEl.className='opening-info';document.getElementById('autofillBannerText').textContent=`Truck, DL & Page filled for ${record.name}`}
   banner.classList.add('show');autoCalc();
 }
-function applySettleAutofill(record){
-  if(record.truck)document.getElementById('sf_truck').value=record.truck;
-  if(record.dl)document.getElementById('sf_dl').value=record.dl;
-}
 function clearAutofillStyles(){['f_truck','f_dl','f_pageno','f_opening'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('autofilled')});document.getElementById('autofillBanner').classList.remove('show');document.getElementById('openingInfo').textContent='Auto-filled from database or last outstanding';document.getElementById('openingInfo').className='opening-info'}
 function onNameInput(val){clearAutofillStyles();const results=searchByName(val);showDropdown('nameDropdown',results,val,'name',function(r){document.getElementById('f_name').value=r.name;closeAllDropdowns();applyAutofill(r)})}
 function onTruckInput(val){const results=searchByTruck(val);showDropdown('truckDropdown',results,val,'truck',function(r){document.getElementById('f_truck').value=r.truck;const nm=document.getElementById('f_name');if(!nm.value.trim()){nm.value=r.name;applyAutofill(r)}else{if(r.dl){const dl=document.getElementById('f_dl');dl.value=r.dl;dl.classList.add('autofilled')}if(r.page){const pg=document.getElementById('f_pageno');pg.value=r.page;pg.classList.add('autofilled')}}closeAllDropdowns()})}
-function onSettleNameInput(val){const results=searchByName(val);showDropdown('settleNameDropdown',results,val,'name',function(r){document.getElementById('sf_name').value=r.name;closeAllDropdowns();applySettleAutofill(r)})}
 function showDropdown(dropId,results,query,labelField,onSelect){
   const drop=document.getElementById(dropId);if(!results.length){drop.innerHTML='';drop.classList.remove('open');return}
   const nq=norm(query);
@@ -683,342 +658,354 @@ function renderDailyTable(){
 }
 
 /* ====================================================================
-   DAILY SETTLEMENT MODULE
+   DAILY SETTLEMENT MODULE — NEW EXCEL UPLOAD BASED
 ====================================================================*/
 
 function renderSettlementSection(){
-  renderSettleDateCols();
-  renderSettleTableHeader();
+  // Just re-render the table body; upload zone stays as-is
   renderSettleBody();
+  if(settlementData.length>0){
+    document.getElementById('settleEmptyState').style.display='none';
+    document.getElementById('settleTableWrap').style.display='block';
+    document.getElementById('settleUploadStats').style.display='grid';
+    document.getElementById('settleDLInfo').style.display='flex';
+    renderSettleStats();
+  }
 }
 
-/* Render the date column config cards */
-function renderSettleDateCols(){
-  const container=document.getElementById('settleDateCols');
-  container.innerHTML=settleDateCols.map((col,i)=>`
-    <div class="sdate-card ${col.date?'active-col':''}">
-      <div class="sdate-card-head">
-        <div class="sdate-label">${col.label}</div>
-        <span class="sdate-badge">Date ${i+1}</span>
-      </div>
-      <div class="sdate-input-wrap">
-        <input type="date" id="${col.id}_date" value="${col.date||''}" onchange="updateSettleDate('${col.id}',this.value)" placeholder="Select date">
-        ${settleDateCols.length>1?`<button class="btn-icon del" title="Remove column" onclick="removeSettleDateCol('${col.id}')"><i class="fas fa-times-circle"></i></button>`:''}
-      </div>
-      ${col.date?`<div style="font-size:10.5px;color:var(--purple2);font-weight:600;margin-top:4px"><i class="fas fa-calendar-check" style="margin-right:4px"></i>${displayDate(col.date)}</div>`:'<div style="font-size:10.5px;color:var(--text3);margin-top:4px">No date set</div>'}
-    </div>
-  `).join('')+`
-    <div class="sdate-card" style="cursor:pointer;border-style:dashed;display:flex;align-items:center;justify-content:center;min-height:100px;flex-direction:column;gap:8px" onclick="addSettleDateCol()">
-      <i class="fas fa-plus-circle" style="font-size:22px;color:var(--purple2)"></i>
-      <div style="font-size:12px;font-weight:600;color:var(--purple2)">Add Date Column</div>
-    </div>
-  `;
+function renderSettleStats(){
+  const total=settlementData.reduce((s,r)=>s+(parseFloat(r.balanceToPay)||0),0);
+  document.getElementById('settleUploadStats').innerHTML=`
+    <div class="upload-stat purple"><div class="usl">Total Rows</div><div class="usv">${settlementData.length}</div></div>
+    <div class="upload-stat green"><div class="usl">Balance To Pay</div><div class="usv">₹${fmt(total)}</div></div>
+    <div class="upload-stat sky"><div class="usl">Unique Drivers</div><div class="usv">${new Set(settlementData.map(r=>norm(r.driver))).size}</div></div>
+    <div class="upload-stat gold"><div class="usl">Unique Vehicles</div><div class="usv">${new Set(settlementData.map(r=>norm(r.vehicle))).size}</div></div>`;
 }
 
-function updateSettleDate(colId,val){
-  const col=settleDateCols.find(c=>c.id===colId);
-  if(col){col.date=val;sv('mmrw_settleDateCols',settleDateCols);renderSettleDateCols();renderSettleTableHeader();renderSettleBody()}
-}
-function addSettleDateCol(){
-  const n=settleDateCols.length+1;
-  settleDateCols.push({id:'sdc'+Date.now(),label:'Settlement Date '+n,date:''});
-  sv('mmrw_settleDateCols',settleDateCols);renderSettlementSection();
-}
-function removeSettleDateCol(colId){
-  if(settleDateCols.length<=1){showToast('Minimum 1 column required!','error');return}
-  if(!confirm('Remove this date column? Amounts entered for this column will be lost.'))return;
-  settleDateCols=settleDateCols.filter(c=>c.id!==colId);
-  sv('mmrw_settleDateCols',settleDateCols);renderSettlementSection();
-}
-
-/* Render the settlement table header */
-function renderSettleTableHeader(){
-  const head=document.getElementById('settleTableHead');
-  head.innerHTML=`<tr>
-    <th style="width:40px">S.No</th>
-    <th>Driver Name</th>
-    <th>Truck No</th>
-    <th>DL No</th>
-    ${settleDateCols.map(col=>`<th>${col.label}<br><span style="font-size:9px;opacity:.8;font-weight:400">${col.date?displayDate(col.date):'(No Date)'}</span></th>`).join('')}
-    <th>Total Amount</th>
-    <th>Action</th>
-  </tr>`;
-}
-
-/* Render settlement rows */
 function renderSettleBody(){
   const b=document.getElementById('settleBody');
   if(!settlementData.length){
-    b.innerHTML=`<tr><td colspan="${4+settleDateCols.length+2}"><div class="empty-state"><i class="fas fa-file-invoice-dollar"></i><p>No settlement entries yet. Click "Add Row" to start.</p></div></td></tr>`;
+    b.innerHTML='';
     return;
   }
   let rows='';
   let grandTotal=0;
-  const colTotals=settleDateCols.map(()=>0);
-
   settlementData.forEach((row,i)=>{
-    let rowTotal=0;
-    const amtCells=settleDateCols.map((col,ci)=>{
-      const val=parseFloat(row['amt_'+col.id])||0;
-      rowTotal+=val;
-      colTotals[ci]+=val;
-      return`<td><input type="number" class="settle-amt-input ${val?'has-value':''}" value="${val||''}" placeholder="0" onchange="updateSettleAmt('${row.id}','${col.id}',this.value)" oninput="this.classList.toggle('has-value',!!this.value)"></td>`;
-    }).join('');
-    grandTotal+=rowTotal;
+    const bal=parseFloat(row.balanceToPay)||0;
+    grandTotal+=bal;
     rows+=`<tr>
       <td><span class="badge badge-purple">${i+1}</span></td>
-      <td><strong>${row.name}</strong></td>
-      <td><span class="badge badge-gold">${row.truck||'-'}</span></td>
-      <td class="mono" style="font-size:11px">${row.dl||'-'}</td>
-      ${amtCells}
-      <td class="mono"><strong style="color:var(--purple)">₹${fmt(rowTotal)}</strong></td>
-      <td>
-        <button class="btn-icon" onclick="openEditSettlementModal('${row.id}')" title="Edit"><i class="fas fa-edit"></i></button>
-        <button class="btn-icon del" onclick="deleteSettlementRow('${row.id}')" title="Delete"><i class="fas fa-trash"></i></button>
-        <button class="btn-icon save-map" onclick="mapSingleRowToDaily('${row.id}')" title="Map this row to Daily Salary"><i class="fas fa-link"></i></button>
-      </td>
+      <td><span class="badge badge-gold">${row.vehicle||'-'}</span></td>
+      <td><strong>${row.driver||'-'}</strong></td>
+      <td><input type="text" class="settle-dl-input" value="${row.dl||''}" placeholder="Enter DL No" onchange="updateSettleDL('${row.id}',this.value)" title="Enter DL Number manually"></td>
+      <td class="mono">${displayDate(row.settlementDate)||'-'}</td>
+      <td class="mono">${displayDate(row.startDate)||'-'}</td>
+      <td class="mono">${displayDate(row.endDate)||'-'}</td>
+      <td class="mono"><strong style="color:var(--purple)">₹${fmt(bal)}</strong></td>
     </tr>`;
   });
-
   // Total row
   rows+=`<tr class="settle-sum-row">
-    <td colspan="4" style="font-weight:800;font-size:12px">TOTAL</td>
-    ${colTotals.map(t=>`<td class="mono" style="font-weight:800">₹${fmt(t)}</td>`).join('')}
+    <td colspan="7" style="font-weight:800;font-size:12px">TOTAL</td>
     <td class="mono" style="font-weight:800;font-size:13px">₹${fmt(grandTotal)}</td>
-    <td></td>
   </tr>`;
-
   b.innerHTML=rows;
 }
 
-/* Update amount inline */
-function updateSettleAmt(rowId,colId,val){
+/* Update DL inline */
+function updateSettleDL(rowId,val){
   const row=settlementData.find(r=>r.id===rowId);
-  if(row){row['amt_'+colId]=parseFloat(val)||0;sv('mmrw_settlement',settlementData);renderSettleBody()}
+  if(row){row.dl=val.trim();sv('mmrw_settlement_v2',settlementData)}
 }
 
-/* Open add settlement row modal */
-function openAddSettlementModal(){
-  editSettleId=null;
-  document.getElementById('settleModalTitle').textContent='Add Settlement Row';
-  document.getElementById('sf_name').value='';
-  document.getElementById('sf_truck').value='';
-  document.getElementById('sf_dl').value='';
-  // Set S.No auto
-  document.getElementById('sf_sno').value=settlementData.length+1;
-  // Render date amount fields
-  renderSettleDateAmountFields(null);
-  document.getElementById('settlementModal').classList.add('show');
-}
-
-function openEditSettlementModal(id){
-  const row=settlementData.find(r=>r.id===id);if(!row)return;
-  editSettleId=id;
-  document.getElementById('settleModalTitle').textContent='Edit Settlement Row';
-  document.getElementById('sf_name').value=row.name||'';
-  document.getElementById('sf_truck').value=row.truck||'';
-  document.getElementById('sf_dl').value=row.dl||'';
-  document.getElementById('sf_sno').value=row.sno||'';
-  renderSettleDateAmountFields(row);
-  document.getElementById('settlementModal').classList.add('show');
-}
-
-function renderSettleDateAmountFields(existingRow){
-  const container=document.getElementById('sf_dateAmounts');
-  container.innerHTML=`<div style="font-size:11px;font-weight:700;color:var(--purple2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px"><i class="fas fa-money-bill-wave" style="margin-right:5px"></i>Settlement Amounts per Date</div>
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px">
-  ${settleDateCols.map(col=>`
-    <div class="form-group">
-      <label class="form-label" style="color:var(--purple)">${col.label} ${col.date?'<span style="color:var(--text3);font-weight:400">('+displayDate(col.date)+')</span>':''}</label>
-      <input type="number" class="form-control" id="sf_amt_${col.id}" placeholder="₹ Amount" value="${existingRow&&existingRow['amt_'+col.id]?existingRow['amt_'+col.id]:''}">
-    </div>
-  `).join('')}
-  </div>`;
-}
-
-function saveSettlementRow(){
-  const nm=document.getElementById('sf_name').value.trim();
-  if(!nm){showToast('Driver Name required!','error');return}
-  const row={
-    id:editSettleId||uid(),
-    sno:document.getElementById('sf_sno').value||settlementData.length+1,
-    name:nm,
-    truck:document.getElementById('sf_truck').value.trim(),
-    dl:document.getElementById('sf_dl').value.trim()
-  };
-  // collect amounts
-  settleDateCols.forEach(col=>{
-    const el=document.getElementById('sf_amt_'+col.id);
-    row['amt_'+col.id]=el?parseFloat(el.value)||0:0;
-  });
-  if(editSettleId){const idx=settlementData.findIndex(r=>r.id===editSettleId);settlementData[idx]=row}
-  else settlementData.push(row);
-  sv('mmrw_settlement',settlementData);
-  closeModal('settlementModal');
+function clearSettlementData(){
+  if(!confirm('Clear all settlement data?'))return;
+  settlementData=[];
+  sv('mmrw_settlement_v2',settlementData);
+  document.getElementById('settleEmptyState').style.display='block';
+  document.getElementById('settleTableWrap').style.display='none';
+  document.getElementById('settleUploadStats').style.display='none';
+  document.getElementById('settleDLInfo').style.display='none';
+  document.getElementById('settleUploadedBadge').style.display='none';
   renderSettleBody();
-  showToast(editSettleId?'Settlement row updated!':'Settlement row added!','purple');
-  editSettleId=null;
+  renderHome();
+  showToast('Settlement data cleared.','error');
 }
 
-function deleteSettlementRow(id){
-  if(!confirm('Delete this settlement row?'))return;
-  settlementData=settlementData.filter(r=>r.id!==id);
-  sv('mmrw_settlement',settlementData);
-  renderSettleBody();
-  showToast('Deleted.','error');
+/* ===== SETTLEMENT EXCEL UPLOAD HANDLER ===== */
+function handleSettleDrop(e){
+  e.preventDefault();
+  document.getElementById('settleUploadZone').style.borderColor='rgba(123,47,247,.35)';
+  const f=e.dataTransfer.files[0];
+  if(f)processSettleFile(f);
+}
+function handleSettleFileSelect(e){
+  const f=e.target.files[0];
+  if(f)processSettleFile(f);
 }
 
-/* ====================================================================
-   SAVE MAPPING — Push settlement data to Daily Salary
-   For each settlement row + each date column with an amount > 0,
-   create a daily salary entry with:
-     date = that column's date
-     name = driver name
-     truck = truck no
-     dl = dl no
-     settlement = that column's amount
-     netsalary = settlement (opening=0 unless found from DB)
-     outstanding = netsalary - paid(0) = netsalary
-====================================================================*/
-function saveSettlementMapping(){
-  if(!settlementData.length){showToast('No settlement data to map!','error');return}
-  const activeCols=settleDateCols.filter(c=>c.date);
-  if(!activeCols.length){showToast('Please set at least one Settlement Date first!','error');return}
+/*
+  Expected columns (case-insensitive, flexible):
+  Vehicle | Driver | Created Date | Start Date | End Date | Balance To Pay
+  Settlement Date = Created Date
+*/
+const SETTLE_COL_MAP={
+  'vehicle':'vehicle','vehicle no':'vehicle','truck no':'vehicle','truck':'vehicle',
+  'driver':'driver','driver name':'driver','name':'driver',
+  'created date':'createdDate','created':'createdDate','creation date':'createdDate',
+  'start date':'startDate','start':'startDate','from date':'startDate',
+  'end date':'endDate','end':'endDate','to date':'endDate',
+  'balance to pay':'balanceToPay','balance':'balanceToPay','amount':'balanceToPay',
+  'balance pay':'balanceToPay','to pay':'balanceToPay','salary':'balanceToPay',
+  'payment':'balanceToPay','net pay':'balanceToPay','pay amount':'balanceToPay'
+};
 
-  let mapped=0;
-  const newEntries=[];
+function processSettleFile(file){
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array',cellDates:false,raw:true});
+      let parsed=[];
+      let fileOk=false;
 
-  settlementData.forEach(row=>{
-    activeCols.forEach(col=>{
-      const amt=parseFloat(row['amt_'+col.id])||0;
-      if(amt<=0)return;
+      wb.SheetNames.forEach(sn=>{
+        const ws=wb.Sheets[sn];
+        const raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:'',raw:true});
+        if(!raw||raw.length<2)return;
 
-      // Check if entry already exists for this driver + date + amount to avoid duplicates
-      const exists=entries.some(e=>
-        norm(e.name)===norm(row.name)&&
-        e.date===col.date&&
-        parseFloat(e.settlement)===(amt)&&
-        e._fromSettlement===col.id+'_'+row.id
-      );
-      if(exists)return;
+        // Find header row
+        let hdrRow=-1;
+        for(let i=0;i<Math.min(raw.length,8);i++){
+          const r=raw[i].map(c=>String(c||'').trim().toLowerCase());
+          // Look for vehicle/driver/balance columns
+          const hasVehicle=r.some(c=>c==='vehicle'||c==='vehicle no'||c==='truck no');
+          const hasDriver=r.some(c=>c==='driver'||c==='driver name'||c==='name');
+          const hasBalance=r.some(c=>c.includes('balance')||c.includes('pay'));
+          if(hasVehicle||hasDriver||hasBalance){hdrRow=i;break}
+        }
+        if(hdrRow<0){
+          // Try first row
+          hdrRow=0;
+        }
 
-      // Look up opening from DB or last outstanding
-      const dbRec=EXCEL_DB.find(d=>norm(d.name)===norm(row.name));
-      const lastOut=getLastOutstanding(row.name,row.truck);
-      const opening=lastOut?lastOut.value:(dbRec?dbRec.opening||0:0);
-      const netsalary=opening+amt;
-      const outstanding=netsalary; // paid = 0 (not entered here)
+        const headers=raw[hdrRow].map(c=>String(c||'').trim());
+        const cm={};
+        headers.forEach((h,idx)=>{
+          const hl=h.toLowerCase().replace(/\s+/g,' ').trim();
+          if(SETTLE_COL_MAP[hl]){const field=SETTLE_COL_MAP[hl];if(cm[field]===undefined)cm[field]=idx}
+        });
 
-      newEntries.push({
-        id:uid(),
-        date:col.date,
-        pageno:dbRec?dbRec.page||'':'',
-        name:row.name,
-        contact:'',
-        truck:row.truck||'',
-        dl:row.dl||(dbRec?dbRec.dl||'':''),
-        opening:opening,
-        settlement:amt,
-        netsalary:netsalary,
-        paid:0,
-        outstanding:outstanding,
-        remarks:'From Daily Settlement ('+col.label+')',
-        _fromSettlement:col.id+'_'+row.id
+        for(let i=hdrRow+1;i<raw.length;i++){
+          const row=raw[i];
+          const nonEmpty=row.filter(c=>c!==null&&c!==undefined&&String(c).trim()!=='').length;
+          if(nonEmpty<2)continue;
+          const vehicle=cm.vehicle!=null?cleanStr(row[cm.vehicle]):'';
+          const driver=cm.driver!=null?cleanStr(row[cm.driver]):'';
+          if(!vehicle&&!driver)continue;
+          if(norm(vehicle)==='vehicle'||norm(driver)==='driver')continue; // skip repeated headers
+
+          const createdDateRaw=cm.createdDate!=null?row[cm.createdDate]:'';
+          const startDateRaw=cm.startDate!=null?row[cm.startDate]:'';
+          const endDateRaw=cm.endDate!=null?row[cm.endDate]:'';
+          const balRaw=cm.balanceToPay!=null?row[cm.balanceToPay]:'';
+
+          const createdDate=parseDate(createdDateRaw);
+          const startDate=parseDate(startDateRaw);
+          const endDate=parseDate(endDateRaw);
+          const balanceToPay=parseNum(balRaw);
+
+          parsed.push({
+            id:uid(),
+            vehicle:vehicle||'',
+            driver:driver||'',
+            dl:'',  // manual
+            settlementDate:createdDate, // Settlement Date = Created Date
+            startDate:startDate,
+            endDate:endDate,
+            balanceToPay:balanceToPay
+          });
+          fileOk=true;
+        }
       });
-      mapped++;
+
+      if(!parsed.length){
+        showToast('No valid rows found! Check your Excel format.','error');
+        return;
+      }
+
+      // Preserve existing DL values if driver+vehicle match
+      parsed.forEach(newRow=>{
+        const existing=settlementData.find(old=>
+          norm(old.vehicle)===norm(newRow.vehicle)&&norm(old.driver)===norm(newRow.driver)
+        );
+        if(existing&&existing.dl)newRow.dl=existing.dl;
+      });
+
+      settlementData=parsed;
+      sv('mmrw_settlement_v2',settlementData);
+
+      // Show file badge
+      document.getElementById('settleUploadedBadge').style.display='flex';
+      document.getElementById('settleUploadedName').textContent=`${file.name} — ${parsed.length} rows loaded`;
+
+      // Show stats & table
+      document.getElementById('settleEmptyState').style.display='none';
+      document.getElementById('settleTableWrap').style.display='block';
+      document.getElementById('settleUploadStats').style.display='grid';
+      document.getElementById('settleDLInfo').style.display='flex';
+
+      renderSettleStats();
+      renderSettleBody();
+      renderHome();
+
+      showToast(`✅ ${parsed.length} settlement records loaded from Excel!`,'success');
+
+    }catch(err){
+      showToast('Error reading Excel: '+err.message,'error');
+      console.error(err);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+/* ===== EXPORT SETTLEMENT EXCEL ===== */
+async function exportSettlementExcel(){
+  if(!settlementData.length){showToast('No settlement data to export!','error');return}
+  const wb=new ExcelJS.Workbook();
+  const ws=wb.addWorksheet('Daily Settlement');
+  const headers=['S.No','Vehicle (Truck No)','Driver Name','DL No','Settlement Date','Start Date','End Date','Balance To Pay'];
+  const rows=settlementData.map((row,i)=>[
+    i+1,row.vehicle||'',row.driver||'',row.dl||'',
+    displayDate(row.settlementDate),displayDate(row.startDate),displayDate(row.endDate),
+    parseFloat(row.balanceToPay)||0
+  ]);
+
+  // Title row
+  ws.mergeCells(1,1,1,headers.length);
+  const tCell=ws.getCell(1,1);tCell.value='MMROADWAYS — Daily Settlement';
+  tCell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF7b2ff7'}};
+  tCell.font={name:'Calibri',size:14,bold:true,color:{argb:'FFFFFFFF'}};
+  tCell.alignment={horizontal:'center',vertical:'middle'};
+  ws.getRow(1).height=34;
+  for(let c=2;c<=headers.length;c++){ws.getCell(1,c).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF7b2ff7'}}}
+
+  // Subtitle
+  ws.mergeCells(2,1,2,headers.length);
+  const sCell=ws.getCell(2,1);
+  sCell.value='Admin: Ragu Anna  |  Developed by Vicky  |  '+new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'});
+  sCell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFa855f7'}};
+  sCell.font={name:'Calibri',size:10,color:{argb:'FFFFFFFF'}};
+  sCell.alignment={horizontal:'center',vertical:'middle'};
+  ws.getRow(2).height=22;
+  for(let c=2;c<=headers.length;c++){ws.getCell(2,c).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFa855f7'}}}
+
+  // Header row
+  const hRow=ws.addRow(headers);hRow.height=26;
+  hRow.eachCell(cell=>{
+    cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF7b2ff7'}};
+    cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FFFFFFFF'}};
+    cell.alignment={horizontal:'center',vertical:'middle',wrapText:true};
+    cell.border={top:{style:'thin'},bottom:{style:'medium'},left:{style:'thin'},right:{style:'thin'}}
+  });
+
+  // Data rows
+  rows.forEach((row,ri)=>{
+    const dr=ws.addRow(row);dr.height=21;const even=ri%2===0;
+    dr.eachCell((cell,ci)=>{
+      let bg=even?'FFF7F0FF':'FFFFFFFF';
+      if(ci===2)cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FFB85C00'}};
+      else if(ci===3)cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FF0a2463'}};
+      else if(ci===4)cell.font={name:'Calibri',size:10,color:{argb:'FF7b2ff7'}};
+      else if(ci===8){bg=even?'FFEDE0FF':'FFF7F0FF';cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FF7b2ff7'}}}
+      else cell.font={name:'Calibri',size:10,color:{argb:'FF0a1628'}};
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:bg}};
+      cell.alignment={vertical:'middle'};
+      cell.border={top:{style:'hair'},bottom:{style:'hair'},left:{style:'hair'},right:{style:'hair'}};
     });
   });
 
-  if(mapped===0){showToast('All entries already mapped or no amounts entered.','info');return}
-
-  entries=entries.concat(newEntries);
-  sv('mmrw_entries',entries);
-  showToast(`✅ ${mapped} entries mapped to Daily Salary!`,'success');
-  renderDailyTable();
-}
-
-/* Map single row */
-function mapSingleRowToDaily(rowId){
-  const row=settlementData.find(r=>r.id===rowId);if(!row)return;
-  const activeCols=settleDateCols.filter(c=>c.date);
-  if(!activeCols.length){showToast('Please set at least one Settlement Date!','error');return}
-  let mapped=0;
-  activeCols.forEach(col=>{
-    const amt=parseFloat(row['amt_'+col.id])||0;
-    if(amt<=0)return;
-    const dbRec=EXCEL_DB.find(d=>norm(d.name)===norm(row.name));
-    const lastOut=getLastOutstanding(row.name,row.truck);
-    const opening=lastOut?lastOut.value:(dbRec?dbRec.opening||0:0);
-    const netsalary=opening+amt;
-    entries.push({id:uid(),date:col.date,pageno:dbRec?dbRec.page||'':'',name:row.name,contact:'',truck:row.truck||'',dl:row.dl||(dbRec?dbRec.dl||'':''),opening,settlement:amt,netsalary,paid:0,outstanding:netsalary,remarks:'From Daily Settlement ('+col.label+')',_fromSettlement:col.id+'_'+row.id});
-    mapped++;
+  // Total row
+  const grandTotal=settlementData.reduce((s,r)=>s+(parseFloat(r.balanceToPay)||0),0);
+  const tRow=ws.addRow(['TOTAL','','','','','','',grandTotal]);tRow.height=28;
+  tRow.eachCell((cell)=>{
+    cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF7b2ff7'}};
+    cell.font={name:'Calibri',size:11,bold:true,color:{argb:'FFFFFFFF'}};
+    cell.alignment={horizontal:'center',vertical:'middle'};
+    cell.border={top:{style:'medium'},bottom:{style:'medium'},left:{style:'thin'},right:{style:'thin'}}
   });
-  if(mapped===0){showToast('No amounts found for this row.','error');return}
-  sv('mmrw_entries',entries);
-  showToast(`${row.name} → ${mapped} entries mapped!`,'success');
+
+  ws.columns=[{width:8},{width:20},{width:24},{width:16},{width:16},{width:16},{width:16},{width:16}];
+  ws.views=[{state:'frozen',ySplit:3,xSplit:0,topLeftCell:'A4'}];
+
+  const buf=await wb.xlsx.writeBuffer();
+  const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`MMROADWAYS_DailySettlement_${new Date().toLocaleDateString('en-IN').replace(/\//g,'-')}.xlsx`;
+  a.click();URL.revokeObjectURL(a.href);
+  showToast('Settlement Excel exported!');
 }
 
 /* ===== DOWNLOAD SETTLEMENT AS IMAGE ===== */
 function downloadSettlementImage(){
-  // Build a clean print-friendly HTML table
-  const printDiv=document.createElement('div');
-  printDiv.style.cssText='position:fixed;left:-9999px;top:0;background:#fff;width:900px;padding:0;font-family:Inter,sans-serif';
+  if(!settlementData.length){showToast('No settlement data to download!','error');return}
 
-  let tableHTML=`
+  const printDiv=document.createElement('div');
+  printDiv.style.cssText='position:fixed;left:-9999px;top:0;background:#fff;width:980px;padding:0;font-family:Inter,sans-serif';
+
+  let grandTotal=0;
+  let tableRows='';
+  settlementData.forEach((row,i)=>{
+    const bal=parseFloat(row.balanceToPay)||0;grandTotal+=bal;
+    tableRows+=`<tr style="border-bottom:1px solid #e5e7f0;background:${i%2===0?'#f7f0ff':'#fff'}">
+      <td style="padding:7px 10px;color:#888;font-size:11px">${i+1}</td>
+      <td style="padding:7px 10px;color:#B85C00;font-weight:700;font-size:12px">${row.vehicle||'-'}</td>
+      <td style="padding:7px 10px;font-weight:700;color:#0a2463;font-size:12px">${row.driver||'-'}</td>
+      <td style="padding:7px 10px;color:#7b2ff7;font-weight:600;font-family:monospace;font-size:11px">${row.dl||'—'}</td>
+      <td style="padding:7px 10px;font-family:monospace;font-size:11px;color:#0096c7">${displayDate(row.settlementDate)||'-'}</td>
+      <td style="padding:7px 10px;font-family:monospace;font-size:11px">${displayDate(row.startDate)||'-'}</td>
+      <td style="padding:7px 10px;font-family:monospace;font-size:11px">${displayDate(row.endDate)||'-'}</td>
+      <td style="padding:7px 10px;text-align:right;font-weight:800;color:${bal>0?'#7b2ff7':'#999'};font-family:monospace;font-size:12px">${bal?'₹'+fmt(bal):'-'}</td>
+    </tr>`;
+  });
+
+  printDiv.innerHTML=`
   <div style="background:linear-gradient(135deg,#0a2463,#1e4db7);padding:20px 28px;color:#fff">
-    <div style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;letter-spacing:.5px">MMROADWAYS — Daily Settlement</div>
+    <div style="font-family:sans-serif;font-size:20px;font-weight:800;letter-spacing:.5px">MMROADWAYS — Daily Settlement</div>
     <div style="font-size:12px;color:rgba(255,255,255,.7);margin-top:4px">Admin: Ragu Anna &nbsp;|&nbsp; ${new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'})}</div>
   </div>
-  <div style="background:linear-gradient(135deg,#7b2ff7,#a855f7);padding:10px 28px;color:#fff;font-size:12px;font-weight:600">
-    ${settleDateCols.filter(c=>c.date).map(c=>c.label+': '+displayDate(c.date)).join('  |  ')||'No dates set'}
+  <div style="background:linear-gradient(135deg,#7b2ff7,#a855f7);padding:10px 28px;color:#fff;font-size:12px;font-weight:600;display:flex;justify-content:space-between;align-items:center">
+    <span><i>Settlement records from uploaded Excel</i></span>
+    <span>${settlementData.length} Drivers &nbsp;|&nbsp; Total: ₹${fmt(grandTotal)}</span>
   </div>
   <div style="padding:16px">
     <table style="width:100%;border-collapse:collapse;font-size:12px">
       <thead>
-        <tr style="background:#0a2463;color:#fff">
-          <th style="padding:9px 10px;text-align:left;font-size:10px;letter-spacing:.5px">S.No</th>
-          <th style="padding:9px 10px;text-align:left;font-size:10px;letter-spacing:.5px">Driver Name</th>
-          <th style="padding:9px 10px;text-align:left;font-size:10px;letter-spacing:.5px">Truck No</th>
-          <th style="padding:9px 10px;text-align:left;font-size:10px;letter-spacing:.5px">DL No</th>
-          ${settleDateCols.map(col=>`<th style="padding:9px 10px;text-align:right;font-size:10px;letter-spacing:.5px">${col.label}${col.date?'<br><span style="font-weight:400;font-size:9px">'+displayDate(col.date)+'</span>':''}</th>`).join('')}
-          <th style="padding:9px 10px;text-align:right;font-size:10px;letter-spacing:.5px">Total</th>
+        <tr style="background:linear-gradient(135deg,#7b2ff7,#a855f7);color:#fff">
+          <th style="padding:9px 10px;text-align:left;font-size:10px;letter-spacing:.5px;font-weight:700">S.No</th>
+          <th style="padding:9px 10px;text-align:left;font-size:10px;letter-spacing:.5px;font-weight:700">Vehicle (Truck No)</th>
+          <th style="padding:9px 10px;text-align:left;font-size:10px;letter-spacing:.5px;font-weight:700">Driver Name</th>
+          <th style="padding:9px 10px;text-align:left;font-size:10px;letter-spacing:.5px;font-weight:700">DL No</th>
+          <th style="padding:9px 10px;text-align:left;font-size:10px;letter-spacing:.5px;font-weight:700">Settlement Date</th>
+          <th style="padding:9px 10px;text-align:left;font-size:10px;letter-spacing:.5px;font-weight:700">Start Date</th>
+          <th style="padding:9px 10px;text-align:left;font-size:10px;letter-spacing:.5px;font-weight:700">End Date</th>
+          <th style="padding:9px 10px;text-align:right;font-size:10px;letter-spacing:.5px;font-weight:700">Balance To Pay</th>
         </tr>
       </thead>
-      <tbody>
-  `;
+      <tbody>${tableRows}</tbody>
+      <tfoot>
+        <tr style="background:#0a2463;color:#fff">
+          <td colspan="7" style="padding:9px 10px;font-weight:800;font-size:12px">GRAND TOTAL</td>
+          <td style="padding:9px 10px;text-align:right;font-weight:800;font-size:13px;font-family:monospace">₹${fmt(grandTotal)}</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+  <div style="padding:10px 28px;text-align:right;font-size:10px;color:#8e98b5;background:#f7f9ff;border-top:1px solid #dde3f0">Generated by MMROADWAYS Driver Salary System | Developed by Vicky</div>`;
 
-  let grand=0;
-  const colTotals=settleDateCols.map(()=>0);
-  settlementData.forEach((row,i)=>{
-    let rt=0;
-    const amtCells=settleDateCols.map((col,ci)=>{
-      const v=parseFloat(row['amt_'+col.id])||0;rt+=v;colTotals[ci]+=v;
-      return`<td style="padding:7px 10px;text-align:right;font-family:monospace;color:${v?'#07a37a':'#ccc'}">${v?'₹'+fmt(v):'-'}</td>`;
-    }).join('');
-    grand+=rt;
-    tableHTML+=`<tr style="border-bottom:1px solid #e5e7f0;background:${i%2===0?'#f7f9ff':'#fff'}">
-      <td style="padding:7px 10px;color:#888">${i+1}</td>
-      <td style="padding:7px 10px;font-weight:700;color:#0a2463">${row.name}</td>
-      <td style="padding:7px 10px;color:#b85c00;font-weight:600">${row.truck||'-'}</td>
-      <td style="padding:7px 10px;font-family:monospace;font-size:11px">${row.dl||'-'}</td>
-      ${amtCells}
-      <td style="padding:7px 10px;text-align:right;font-weight:800;color:#7b2ff7;font-family:monospace">₹${fmt(rt)}</td>
-    </tr>`;
-  });
-
-  tableHTML+=`<tr style="background:#0a2463;color:#fff">
-    <td colspan="4" style="padding:9px 10px;font-weight:800">TOTAL</td>
-    ${colTotals.map(t=>`<td style="padding:9px 10px;text-align:right;font-weight:800;font-family:monospace">₹${fmt(t)}</td>`).join('')}
-    <td style="padding:9px 10px;text-align:right;font-weight:800;font-family:monospace">₹${fmt(grand)}</td>
-  </tr>`;
-
-  tableHTML+=`</tbody></table></div>
-  <div style="padding:10px 28px;text-align:right;font-size:10px;color:#8e98b5;background:#f7f9ff">Generated by MMROADWAYS Driver Salary System | Developed by Vicky</div>`;
-
-  printDiv.innerHTML=tableHTML;
   document.body.appendChild(printDiv);
+  showToast('Generating image...','info');
 
-  html2canvas(printDiv,{scale:2,useCORS:true,backgroundColor:'#fff'}).then(canvas=>{
+  html2canvas(printDiv,{scale:2,useCORS:true,backgroundColor:'#fff',logging:false}).then(canvas=>{
     document.body.removeChild(printDiv);
     const link=document.createElement('a');
     link.download=`MMROADWAYS_Settlement_${new Date().toLocaleDateString('en-IN').replace(/\//g,'-')}.png`;
@@ -1026,62 +1013,9 @@ function downloadSettlementImage(){
     link.click();
     showToast('Settlement image downloaded!','success');
   }).catch(err=>{
-    document.body.removeChild(printDiv);
+    if(document.body.contains(printDiv))document.body.removeChild(printDiv);
     showToast('Error generating image: '+err.message,'error');
   });
-}
-
-/* ===== EXPORT SETTLEMENT EXCEL ===== */
-async function exportSettlementExcel(){
-  const wb=new ExcelJS.Workbook();
-  const headers=['S.No','Driver Name','Truck No','DL No',...settleDateCols.map(c=>c.label+(c.date?' ('+displayDate(c.date)+')':'')),'Total Amount'];
-  const rows=settlementData.map((row,i)=>{
-    let total=0;
-    const amts=settleDateCols.map(col=>{const v=parseFloat(row['amt_'+col.id])||0;total+=v;return v});
-    return[i+1,row.name,row.truck||'',row.dl||'',...amts,total];
-  });
-  addSettlementColorSheet(wb,headers,rows);
-  const buf=await wb.xlsx.writeBuffer();
-  const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download=`MMROADWAYS_DailySettlement_${new Date().toLocaleDateString('en-IN').replace(/\//g,'-')}.xlsx`;
-  a.click();URL.revokeObjectURL(a.href);showToast('Settlement Excel exported!');
-}
-
-function addSettlementColorSheet(wb,headers,rows){
-  const ws=wb.addWorksheet('Daily Settlement');
-  ws.mergeCells(1,1,1,headers.length);
-  const tCell=ws.getCell(1,1);tCell.value='MMROADWAYS — Daily Settlement';
-  tCell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF7b2ff7'}};tCell.font={name:'Calibri',size:14,bold:true,color:{argb:'FFFFFFFF'}};tCell.alignment={horizontal:'center',vertical:'middle'};ws.getRow(1).height=34;
-  for(let c=2;c<=headers.length;c++){ws.getCell(1,c).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF7b2ff7'}}}
-  ws.mergeCells(2,1,2,headers.length);
-  const sCell=ws.getCell(2,1);sCell.value='Admin: Ragu Anna  |  Developed by Vicky  |  '+new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'});
-  sCell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFa855f7'}};sCell.font={name:'Calibri',size:10,color:{argb:'FFFFFFFF'}};sCell.alignment={horizontal:'center',vertical:'middle'};ws.getRow(2).height=22;
-  for(let c=2;c<=headers.length;c++){ws.getCell(2,c).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFa855f7'}}}
-  const hRow=ws.addRow(headers);hRow.height=26;
-  hRow.eachCell(cell=>{cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF7b2ff7'}};cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FFFFFFFF'}};cell.alignment={horizontal:'center',vertical:'middle',wrapText:true};cell.border={top:{style:'thin'},bottom:{style:'medium'},left:{style:'thin'},right:{style:'thin'}}});
-  rows.forEach((row,ri)=>{
-    const dr=ws.addRow(row);dr.height=21;const even=ri%2===0;
-    dr.eachCell((cell,ci)=>{
-      let bg=even?'FFF7F0FF':'FFFFFFFF';
-      if(ci===1)cell.font={name:'Calibri',size:10,color:{argb:'FF888888'}};
-      else if(ci===2)cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FF0a2463'}};
-      else if(ci===3)cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FFB85C00'}};
-      else if(ci===headers.length){bg=even?'FFEDE0FF':'FFF7F0FF';cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FF7b2ff7'}}}
-      else cell.font={name:'Calibri',size:10,color:{argb:cell.value>0?'FF07a37a':'FF999999'}};
-      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:bg}};
-      cell.alignment={vertical:'middle'};
-      cell.border={top:{style:'hair'},bottom:{style:'hair'},left:{style:'hair'},right:{style:'hair'}};
-    });
-  });
-  // Total row
-  if(rows.length){
-    const colTotals=headers.map((_,i)=>{if(i<4)return i===0?'TOTAL':'';return rows.reduce((s,r)=>s+(parseFloat(r[i])||0),0)});
-    const tRow=ws.addRow(colTotals);tRow.height=28;
-    tRow.eachCell((cell,ci)=>{cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF7b2ff7'}};cell.font={name:'Calibri',size:11,bold:true,color:{argb:'FFFFFFFF'}};cell.alignment={horizontal:'center',vertical:'middle'};cell.border={top:{style:'medium'},bottom:{style:'medium'},left:{style:'thin'},right:{style:'thin'}}});
-  }
-  ws.columns=headers.map((h,i)=>{if(i===1)return{width:24};if(i===2)return{width:18};return{width:Math.max(String(h).length+2,13)}});
-  ws.views=[{state:'frozen',ySplit:3,xSplit:0,topLeftCell:'A4'}];
 }
 
 /* ===== MONTH HELPERS ===== */
@@ -1169,7 +1103,7 @@ function renderConsolidated(){
 }
 
 /* ====================================================================
-   SMART IMPORT ENGINE
+   SMART IMPORT ENGINE (Daily Salary)
 ====================================================================*/
 const DAILY_HEADER_MAP={'s.no':'sno','sno':'sno','s no':'sno','date':'date','name':'name','driver name':'name','contact no':'contact','contact':'contact','mobile':'contact','truck no':'truck','truck':'truck','vehicle no':'truck','dl no':'dl','dl':'dl','driving licence':'dl','page no':'pageno','page':'pageno','opening bal':'opening','opening balance':'opening','opening':'opening','note cls salary':'opening','settlement':'settlement','net salary':'netsalary','paid salary':'paid','paid':'paid','outstanding':'outstanding','outstanding salary':'outstanding','remarks':'remarks','notes':'remarks'};
 
@@ -1349,6 +1283,15 @@ function addColorSheet(wb,sheetName,headers,rows,opts={}){
 
 /* ===== INIT ===== */
 renderAll();
+// Restore settlement UI if data exists
+if(settlementData.length>0){
+  document.getElementById('settleEmptyState').style.display='none';
+  document.getElementById('settleTableWrap').style.display='block';
+  document.getElementById('settleUploadStats').style.display='grid';
+  document.getElementById('settleDLInfo').style.display='flex';
+  document.getElementById('settleUploadedBadge').style.display='flex';
+  document.getElementById('settleUploadedName').textContent=`${settlementData.length} rows loaded from previous session`;
+}
 </script>
 </body>
 </html>
