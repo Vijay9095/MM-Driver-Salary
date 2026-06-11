@@ -892,7 +892,7 @@ async function exportSettlementExcel(){
   // Subtitle
   ws.mergeCells(2,1,2,headers.length);
   const sCell=ws.getCell(2,1);
-  sCell.value='Admin: Ragu Anna  |  Developed by Vicky  |  '+new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'});
+  sCell.value='Admin: MMROADWAYS  |  Developed by Vicky  |  '+new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'});
   sCell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFa855f7'}};
   sCell.font={name:'Calibri',size:10,color:{argb:'FFFFFFFF'}};
   sCell.alignment={horizontal:'center',vertical:'middle'};
@@ -971,7 +971,7 @@ function downloadSettlementImage(){
   printDiv.innerHTML=`
   <div style="background:linear-gradient(135deg,#0a2463,#1e4db7);padding:20px 28px;color:#fff">
     <div style="font-family:sans-serif;font-size:20px;font-weight:800;letter-spacing:.5px">MMROADWAYS — Daily Settlement</div>
-    <div style="font-size:12px;color:rgba(255,255,255,.7);margin-top:4px">Admin: Ragu Anna &nbsp;|&nbsp; ${new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'})}</div>
+    <div style="font-size:12px;color:rgba(255,255,255,.7);margin-top:4px">Admin: MMROADWAYS &nbsp;|&nbsp; ${new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'})}</div>
   </div>
   <div style="background:linear-gradient(135deg,#7b2ff7,#a855f7);padding:10px 28px;color:#fff;font-size:12px;font-weight:600;display:flex;justify-content:space-between;align-items:center">
     <span><i>Settlement records from uploaded Excel</i></span>
@@ -1249,7 +1249,7 @@ function addColorSheet(wb,sheetName,headers,rows,opts={}){
   tCell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0a2463'}};tCell.font={name:'Calibri',size:14,bold:true,color:{argb:'FFFFFFFF'}};tCell.alignment={horizontal:'center',vertical:'middle'};ws.getRow(1).height=34;
   for(let c=2;c<=headers.length;c++){ws.getCell(1,c).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0a2463'}}}
   ws.mergeCells(2,1,2,headers.length);
-  const sCell=ws.getCell(2,1);sCell.value='Admin: Ragu Anna  |  Developed by Vicky  |  '+new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'});
+  const sCell=ws.getCell(2,1);sCell.value='Admin: MMROADWAYS  |  Developed by Vicky  |  '+new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'});
   sCell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF1e4db7'}};sCell.font={name:'Calibri',size:10,color:{argb:'FFC8D6F0'}};sCell.alignment={horizontal:'center',vertical:'middle'};ws.getRow(2).height=22;
   for(let c=2;c<=headers.length;c++){ws.getCell(2,c).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF1e4db7'}}}
   const hRow=ws.addRow(headers);hRow.height=26;
